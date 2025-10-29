@@ -53,7 +53,6 @@ const MainContent: React.FC = () => {
 
   return (
     <main className="main-container min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-500">
-      {/* Hero Section */}
       <section className="hero-section flex flex-col items-center justify-center text-center py-20 px-6 md:px-12">
         <motion.h1
           variants={fadeIn("up", 0.2)}
@@ -93,7 +92,6 @@ const MainContent: React.FC = () => {
         </motion.div>
       </section>
 
-      {/* Features Section */}
       <section className="features-section py-20 bg-gray-50 dark:bg-gray-800 text-center">
         <motion.h2
           variants={fadeIn("up", 0.2)}
@@ -105,7 +103,6 @@ const MainContent: React.FC = () => {
           Why Choose MegaPend?
         </motion.h2>
 
-        {/* Added wrapper for features-grid */}
         <div className="features-grid">
           {features.map((feature, i) => (
             <motion.div
@@ -124,7 +121,6 @@ const MainContent: React.FC = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
       <section className="testimonials-section py-20 px-6 text-center">
         <motion.blockquote
           variants={fadeIn("up", 0.2)}
@@ -141,7 +137,6 @@ const MainContent: React.FC = () => {
         </motion.blockquote>
       </section>
 
-      {/* Call to Action */}
       <section className="cta-section py-20 bg-blue-600 dark:bg-blue-700 text-center text-white">
         <motion.h2
           variants={fadeIn("up", 0.2)}

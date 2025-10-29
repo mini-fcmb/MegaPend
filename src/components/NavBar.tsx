@@ -40,7 +40,7 @@ function NavBar({ theme, setTheme }: NavBarProps) {
               <Link to={"/courses"}>Courses</Link>
             </li>
             <li>
-              <Link to={"/quizzes"}>Quizzes</Link>
+              <Link to={"/quiz"}>Quizzes</Link>
             </li>
             <li>
               <Link to={"/dashboard"}>Dashboard</Link>
@@ -79,7 +79,7 @@ function NavBar({ theme, setTheme }: NavBarProps) {
             <Link to={"/courses"}>Courses</Link>
           </li>
           <li>
-            <Link to={"/quizzes"}>Quizzes</Link>
+            <Link to={"/quiz"}>Quizzes</Link>
           </li>
           <li>
             <Link to={"/dashboard"}>Dashboard</Link>

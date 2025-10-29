@@ -1,11 +1,10 @@
 import NavBar from "../components/NavBar";
-
-function Quiz() {
+function Courses() {
   return (
     <>
       <NavBar />
-      <h1>start quizzes</h1>
+      <h1>welcome to the home page</h1>
     </>
   );
 }
-export default Quiz;
+export default Courses;
