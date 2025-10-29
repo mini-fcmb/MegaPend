@@ -116,7 +116,15 @@ header {
   margin: 20px 0;
   cursor: pointer;
 }
+.bx-menu{
+  color: var(--text-color) !important;
+}
 
+.sidepanel-a li a{
+text-decoration: none;
+font-weight: 500px;
+color: var(--text-color);
+}
 .close-btn {
   font-size: 1.5rem;
   background: none;
@@ -225,29 +233,23 @@ header {
     border: none;
     border-radius: 8px;
     padding: 10px;
-    font-weight: 600;
+    font-weight: 600; 
     cursor: pointer;
     transition: all 0.3s ease;
   }
 
   .side-panel .theme-toggle:hover {
-    background-color: var(--text-hover-glow);
-    color: #fff;
+    background-color: var(--text-hover-glow) ;
+    color: #fff ;
   }
 }
-/* 🌐 Smooth scrolling between sections */
-/* ======================== */
-/* Global container styling */
-/* ======================== */
+
 .main-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
 
-/* ======================== */
-/* Hero Section */
-/* ======================== */
 .hero-section {
   display: flex;
   flex-direction: column;
@@ -265,7 +267,7 @@ header {
 
 .hero-section p {
   font-size: 1.2rem;
-  color: #4b5563; /* gray-600 */
+  color: #4b5563; 
   max-width: 40rem;
   margin-bottom: 2rem;
 }
@@ -273,19 +275,19 @@ header {
 .hero-section button {
   padding: 0.75rem 2rem;
   font-weight: 600;
-  border-radius: 9999px; /* rounded-2xl */
+  border-radius: 9999px; 
   cursor: pointer;
   transition: all 0.3s ease-in-out;
 }
 
 .hero-section button:first-child {
-  background-color: var(--hero-section-button); /* blue-600 */
+  background-color: var(--hero-section-button); 
   color: white;
   border: none;
 }
 
 .hero-section button:first-child:hover {
-  background-color: var(--hero-section-button); /* blue-700 */
+  background-color: var(--hero-section-button); 
   transform: translateY(-1px);
 }
 
@@ -301,11 +303,8 @@ header {
   color: white;
 }
 
-/* ======================== */
-/* Features Section */
-/* ======================== */
 .features-section {
-  background-color: #f9fafb; /* gray-50 */
+  background-color: #f9fafb; 
   padding: 5rem 1.5rem;
   text-align: center;
 }
@@ -340,9 +339,7 @@ header {
   color: #4b5563;
 }
 
-/* ======================== */
-/* Testimonials Section */
-/* ======================== */
+
 .testimonials-section {
   padding: 5rem 1.5rem;
   text-align: center;

@@ -32,7 +32,7 @@ function NavBar({ theme, setTheme }: NavBarProps) {
         <nav className="nav-desktop">
           <ul>
             <li>
-              <Link to={"/about"}>Home</Link>
+              <a href={"/"}>Home</a>
             </li>
             <li>
               <Link to={"/about"}>Courses</Link>
@@ -65,10 +65,9 @@ function NavBar({ theme, setTheme }: NavBarProps) {
           <i className="bx bx-x"></i>
         </button>
 
-        <ul>
+        <ul className="sidepanel-a">
           <li className="nav_text">
-            {" "}
-            <Link to={"/about"}>Home</Link>
+            <a href={"/"}>Home</a>
           </li>
           <li className="nav_text">
             <Link to={"/about"}>Courses</Link>
@@ -77,10 +76,10 @@ function NavBar({ theme, setTheme }: NavBarProps) {
             <Link to={"/about"}>Quizzes</Link>
           </li>
           <li className="nav_text">
-            <Link to={"/about"}>Home</Link>Dashboard
+            <Link to={"/about"}>Dashboard</Link>
           </li>
           <li className="nav_text">
-            <Link to={"/about"}>Home</Link>Login
+            <Link to={"/about"}>Login</Link>
           </li>
         </ul>
 

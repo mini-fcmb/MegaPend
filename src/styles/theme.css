@@ -48,10 +48,24 @@ body {
 }
 
 .theme-toggle:hover {
-  transform: rotate(20deg);
+ transform: rotate(20deg);  
+ background: var(--button-text);
+ color: var(--button-bg);
+}
+.side-panel .theme-toggle {
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.side-panel .theme-toggle:hover {
+  transform: scale(0.8);  
   background: var(--button-text);
   color: var(--button-bg);
-}
+ }
 [data-theme="dark"] .brand-name {
   color: #f5f5f5;
 }
