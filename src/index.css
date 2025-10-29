@@ -207,6 +207,11 @@ header {
   --logo-hover-glow: #2563eb;
   --hero-section-button: #2563eb;
   --theme-toggle:#e2e0e0;
+  --cta-section-button:#2563eb ;
+  --cta-main-color:white;
+  --cta:black;
+  --bdc:#2563eb;
+
 
 }
 
@@ -221,6 +226,11 @@ header {
   --logo-hover-glow: rgb(126, 201, 13);
   --hero-section-button: rgb(126, 201, 13);
   --theme-toggle:rgb(126, 201, 13);
+  --cta-section-button:rgb(126, 201, 13);
+  --cta-main-color:white;
+  --cta:black;
+  --bdc:white;
+
 }
 
 .main-container {
@@ -291,6 +301,7 @@ header {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 3rem;
+  color:#222;
 }
 
 .features-section .features-grid {
@@ -322,6 +333,7 @@ header {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  color: #222;
 }
 
 .feature-card p {
@@ -345,13 +357,14 @@ header {
 .testimonials-section footer {
   margin-top: 1rem;
   font-weight: 600;
-  color: #2563eb;
+  color: var(--cta-section-button);
 }
 .cta-section {
-  background-color: #2563eb;
+  background-color: var(--cta-section-button);
   color: white;
   text-align: center;
   padding: 5rem 1.5rem;
+  border:5px solid var(--bdc);
 }
 
 .cta-section h2 {
@@ -361,8 +374,9 @@ header {
 }
 
 .cta-section button {
-  background-color: white;
-  color: #2563eb;
+  background-color: var(--cta-main-color);
+  border:2px solid white;
+  color: var(--cta); 
   padding: 0.75rem 2rem;
   border-radius: 9999px;
   font-weight: 600;
@@ -370,7 +384,7 @@ header {
 }
 
 .cta-section button:hover {
-  background-color: #e5e7eb;
+  background-color:var(--cta-section-button);
 }
 
 .dark .hero-section p,
