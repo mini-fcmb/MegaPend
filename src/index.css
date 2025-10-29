@@ -26,6 +26,12 @@ header {
   align-items: center;
   gap: 8px;
 }
+.bx-menu{
+  color: var(--text-color);
+}
+.bx-x{
+  color: var(--text-color);
+}
 
 .logo-wrapper {
   display: flex;
@@ -200,6 +206,8 @@ header {
   --text-hover-glow: #2563eb;
   --logo-hover-glow: #2563eb;
   --hero-section-button: #2563eb;
+  --theme-toggle:#e2e0e0;
+
 }
 
 [data-theme="dark"] {
@@ -212,6 +220,7 @@ header {
   --text-hover-glow: rgb(126, 201, 13);
   --logo-hover-glow: rgb(126, 201, 13);
   --hero-section-button: rgb(126, 201, 13);
+  --theme-toggle:rgb(126, 201, 13);
 }
 
 .main-container {
@@ -395,14 +404,14 @@ header {
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   font-weight: 600;
-  background-color: var(--primary-color);
+  background-color: var(--theme-toggle);
   color: var(--text-color);
   border: none;
   transition: all 0.3s ease;
 }
 
 .theme-toggle:hover {
-  background-color: var(--text-hover-glow);
+  background-color: var(--text-color);
   color: #fff;
 }
 
@@ -422,14 +431,15 @@ header {
     padding: 0.75rem 0;
     font-weight: 600;
     border-radius: 0.5rem;
-    background-color: var(--primary-color);
+    background-color: var(--text-hover-glow);
     color: var(--text-color);
     transition: all 0.3s ease;
   }
 
   .side-panel .theme-toggle:hover {
-    background-color: var(--text-hover-glow);
-    color: #fff;
+    transform: scale(0.8);
+
+
   }
 }
 
