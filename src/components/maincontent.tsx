@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { motion, Variants } from "framer-motion";
+import "../index.css";
 
 const fadeIn = (
   direction: "up" | "down" | "left" | "right" = "up",
@@ -104,7 +105,8 @@ const MainContent: React.FC = () => {
           Why Choose MegaPend?
         </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
+        {/* Added wrapper for features-grid */}
+        <div className="features-grid">
           {features.map((feature, i) => (
             <motion.div
               key={i}
@@ -112,7 +114,7 @@ const MainContent: React.FC = () => {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true }}
-              className="p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-md hover:shadow-xl transition"
+              className="feature-card p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-md hover:shadow-xl transition"
             >
               <div className="text-4xl mb-4">{feature.icon}</div>
               <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
