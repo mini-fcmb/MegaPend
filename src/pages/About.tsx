@@ -1,4 +1,5 @@
+import NavBar from "../components/NavBar";
 function About() {
-  return;
+  return <NavBar />;
 }
 export default About;

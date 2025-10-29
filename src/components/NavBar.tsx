@@ -2,11 +2,11 @@ import { Dispatch, SetStateAction, useState } from "react";
 import "boxicons/css/boxicons.min.css";
 import "../styles/theme.css";
 import logo from "../assets/MegaPend logo Design.png";
-import { Link, Links } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface NavBarProps {
-  theme: "light" | "dark";
-  setTheme: Dispatch<SetStateAction<"light" | "dark">>;
+  theme?: "light" | "dark"; // optional now
+  setTheme?: Dispatch<SetStateAction<"light" | "dark">>; // optional
 }
 
 function NavBar({ theme, setTheme }: NavBarProps) {
@@ -15,9 +15,11 @@ function NavBar({ theme, setTheme }: NavBarProps) {
   const toggleSidePanel = () => setIsOpen(!isOpen);
 
   const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
+    if (!theme || !setTheme) return; // don't do anything if props not provided
+    setTheme(theme === "dark" ? "light" : "dark");
   };
+
+  const showThemeButton = theme && setTheme;
 
   return (
     <>
@@ -32,27 +34,31 @@ function NavBar({ theme, setTheme }: NavBarProps) {
         <nav className="nav-desktop">
           <ul>
             <li>
-              <a href={"/"}>Home</a>
+              <Link to={"/"}>Home</Link>
             </li>
             <li>
-              <Link to={"/about"}>Courses</Link>
+              <Link to={"/courses"}>Courses</Link>
             </li>
             <li>
-              <Link to={"/about"}>Quizzes</Link>
+              <Link to={"/quizzes"}>Quizzes</Link>
             </li>
             <li>
-              <Link to={"/about"}>Dashboard</Link>
+              <Link to={"/dashboard"}>Dashboard</Link>
             </li>
             <li>
-              <Link to={"/about"}>Login</Link>
+              <Link to={"/login"}>Login</Link>
             </li>
           </ul>
         </nav>
 
         <div className="actions flex items-center gap-4">
-          <button className="theme-toggle" onClick={toggleTheme}>
-            <i className={`bx ${theme === "dark" ? "bx-sun" : "bx-moon"}`}></i>
-          </button>
+          {showThemeButton && (
+            <button className="theme-toggle" onClick={toggleTheme}>
+              <i
+                className={`bx ${theme === "dark" ? "bx-sun" : "bx-moon"}`}
+              ></i>
+            </button>
+          )}
 
           <button className="nav-toggle" onClick={toggleSidePanel}>
             <i className="bx bx-menu"></i>
@@ -66,27 +72,29 @@ function NavBar({ theme, setTheme }: NavBarProps) {
         </button>
 
         <ul className="sidepanel-a">
-          <li className="nav_text">
-            <a href={"/"}>Home</a>
+          <li>
+            <Link to={"/"}>Home</Link>
           </li>
-          <li className="nav_text">
-            <Link to={"/about"}>Courses</Link>
+          <li>
+            <Link to={"/courses"}>Courses</Link>
           </li>
-          <li className="nav_text">
-            <Link to={"/about"}>Quizzes</Link>
+          <li>
+            <Link to={"/quizzes"}>Quizzes</Link>
           </li>
-          <li className="nav_text">
-            <Link to={"/about"}>Dashboard</Link>
+          <li>
+            <Link to={"/dashboard"}>Dashboard</Link>
           </li>
-          <li className="nav_text">
-            <Link to={"/about"}>Login</Link>
+          <li>
+            <Link to={"/login"}>Login</Link>
           </li>
         </ul>
 
-        <button className="theme-toggle side-theme" onClick={toggleTheme}>
-          <i className={`bx ${theme === "dark" ? "bx-sun" : "bx-moon"}`}></i>
-          <span>{theme === "dark" ? " Light Mode" : " Dark Mode"}</span>
-        </button>
+        {showThemeButton && (
+          <button className="theme-toggle side-theme" onClick={toggleTheme}>
+            <i className={`bx ${theme === "dark" ? "bx-sun" : "bx-moon"}`}></i>
+            <span>{theme === "dark" ? " Light Mode" : " Dark Mode"}</span>
+          </button>
+        )}
       </div>
 
       {isOpen && <div className="overlay show" onClick={toggleSidePanel}></div>}
