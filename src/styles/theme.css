@@ -1,0 +1,58 @@
+
+:root[data-theme="light"] {
+  --bg-color: #ffffff;
+  --text-color: #222222;
+  --nav-bg: #f9f9f9;
+  --nav-text: #000000;
+  --button-bg: #eaeaea;
+  --button-text: #000000;
+  --box-shadow-color:#2563eb ;
+
+}
+
+:root[data-theme="dark"] {
+  --bg-color: #1f1f1f;
+  --text-color: #f0f0f0;
+  --nav-bg: #1f1f1f;
+  --nav-text: #ffffff;
+  --button-bg: rgb(126, 201, 13);
+  --button-text: #ffffff;
+  --box-shadow-color: rgb(126, 201, 13) ;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Poppins", sans-serif;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.navbar {
+  background-color: var(--nav-bg);
+  color: var(--nav-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  box-shadow: 0 5px 10px var(--box-shadow-color);
+}
+
+.theme-toggle {
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  transform: rotate(20deg);
+  background: var(--button-text);
+  color: var(--button-bg);
+}
+[data-theme="dark"] .brand-name {
+  color: #f5f5f5;
+}
+
