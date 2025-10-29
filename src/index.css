@@ -388,3 +388,48 @@ header {
     ;
   }
 }
+/* Theme toggle button */
+.theme-toggle {
+  display: inline-block; /* visible on desktop */
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--text-hover-glow);
+  color: #fff;
+}
+
+/* Responsive adjustments for side panel and smaller screens */
+@media (max-width: 1024px) {
+  /* Hide default theme button */
+  .theme-toggle {
+    display: none;
+  }
+
+  /* Show theme button in side panel with full width */
+  .side-panel .theme-toggle {
+    display: block;
+    margin-top: 20px;
+    width: 100%; /* stretch to fill panel */
+    text-align: center;
+    padding: 0.75rem 0;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+  }
+
+  .side-panel .theme-toggle:hover {
+    background-color: var(--text-hover-glow);
+    color: #fff;
+  }
+}
+
