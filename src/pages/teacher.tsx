@@ -2,14 +2,15 @@
 import { useState, FormEvent, useEffect } from "react";
 import { addContent } from "../firebase/contentService";
 import { useLocation } from "react-router-dom";
+import { auth } from "../firebase/config"; // import Firebase Auth
 import "./teacher.css";
 
 export default function TeacherDashboard() {
   const location = useLocation();
   const teacherSubjects = location.state?.subjects || [];
-  const teacherName = "John Doe"; // Replace with actual teacher name
-  const teacherPhoto = ""; // Replace with actual profile photo URL
 
+  const [teacherName, setTeacherName] = useState("John Doe");
+  const [teacherPhoto, setTeacherPhoto] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -21,6 +22,22 @@ export default function TeacherDashboard() {
   const [loading, setLoading] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
+  // ✅ Get user info from Firebase Auth
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setTeacherName(user.displayName || "Unknown Teacher");
+        setTeacherPhoto(user.photoURL || "");
+      } else {
+        setTeacherName("Guest Teacher");
+        setTeacherPhoto("");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // ✅ Detect dark mode
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
@@ -39,7 +56,7 @@ export default function TeacherDashboard() {
         subject,
         classLevel,
         description,
-        "teacherId"
+        auth.currentUser?.uid || "unknown-teacher"
       );
       alert("Content uploaded successfully!");
       setTitle("");
@@ -88,12 +105,20 @@ export default function TeacherDashboard() {
                 {teacherName.charAt(0).toUpperCase()}
               </div>
             )}
+
             {avatarOpen && (
               <div className="avatar-dropdown">
                 <p>{teacherName}</p>
                 <button>Profile</button>
                 <button>Settings</button>
-                <button>Logout</button>
+                <button
+                  onClick={() => {
+                    auth.signOut();
+                    window.location.reload();
+                  }}
+                >
+                  Logout
+                </button>
               </div>
             )}
           </div>
