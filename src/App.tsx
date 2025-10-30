@@ -6,12 +6,12 @@ import TeacherDashboard from "./pages/teacher";
 import ProtectedRoute from "./components/protectedroute";
 function App() {
   return (
-    <TeacherDashboard />
-    /*<Routes>
+    <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-  </Routes>*/
+      <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+    </Routes>
   );
 }
 export default App;

@@ -2,26 +2,31 @@ import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../index.css";
 import { registerWithRole } from "../firebase/authService";
+import { updateProfile, sendEmailVerification } from "firebase/auth";
 
 export default function Signup() {
   const [role, setRole] = useState<"student" | "teacher">("student");
-  const [fullName, setFullName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [classLevel, setClassLevel] = useState<string>("SS1"); // For students
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [classLevel, setClassLevel] = useState("SS1");
   const [teaching, setTeaching] = useState<
     { subject: string; classLevel: string }[]
-  >([]); // For teachers
+  >([]);
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
+      let user;
+
       if (role === "student") {
-        // Students: store array of classes/levels (comma separated)
         const studentSubjects = classLevel.split(",").map((c) => c.trim());
-        await registerWithRole(
+        user = await registerWithRole(
           email,
           password,
           role,
@@ -29,14 +34,30 @@ export default function Signup() {
           studentSubjects
         );
       } else {
-        // Teachers: store array of {subject, classLevel} objects
-        await registerWithRole(email, password, role, fullName, teaching);
+        user = await registerWithRole(
+          email,
+          password,
+          role,
+          fullName,
+          teaching
+        );
       }
 
-      alert("Account created successfully!");
+      // Update displayName
+      await updateProfile(user, { displayName: fullName });
+
+      // ✅ Send email verification
+      await sendEmailVerification(user);
+
+      alert(
+        "Account created successfully! Please check your email to verify your account before logging in."
+      );
+
       navigate("/login");
     } catch (error: any) {
-      alert(error.message);
+      alert(error.message || "Signup failed, please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -147,8 +168,10 @@ export default function Signup() {
             </div>
           )}
 
-          <button type="submit" className="signup-btn">
-            Sign Up as {role === "student" ? "Student" : "Teacher"}
+          <button type="submit" className="signup-btn" disabled={loading}>
+            {loading
+              ? "Creating Account..."
+              : `Sign Up as ${role === "student" ? "Student" : "Teacher"}`}
           </button>
         </form>
 

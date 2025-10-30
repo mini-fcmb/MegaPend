@@ -4,33 +4,47 @@ import "../index.css";
 import { loginWithRole } from "../firebase/authService";
 
 export default function Login() {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      // Login and fetch user data
       const { user, role, studentSubjects, teaching } = await loginWithRole(
         email,
         password
       );
 
-      alert("Logged in successfully!");
+      // ✅ Check if email is verified
+      if (!user.emailVerified) {
+        alert("Please verify your email before logging in.");
+        setLoading(false);
+        return;
+      }
 
-      // Redirect based on role
+      alert(`Welcome back, ${user.displayName || "User"}!`);
+
       if (role === "student") {
         navigate("/student-dashboard", {
-          state: { studentSubjects }, // pass student classes/levels
+          state: {
+            studentSubjects,
+            fullName: user.displayName,
+            email: user.email,
+          },
         });
-      } else if (role === "teacher") {
+      } else {
         navigate("/teacher-dashboard", {
-          state: { teaching }, // pass teacher subjects + class combos
+          state: { teaching, fullName: user.displayName, email: user.email },
         });
       }
     } catch (error: any) {
-      alert(error.message);
+      alert(error.message || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,8 +76,8 @@ export default function Login() {
             />
           </div>
 
-          <button type="submit" className="btn">
-            Log In
+          <button type="submit" className="btn" disabled={loading}>
+            {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
 

@@ -1,16 +1,21 @@
+// src/firebase/authService.ts
 import { auth, db } from "./config";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  User 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  User,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
 // Union type for subjects/class data
 type TeachingData = string[] | { subject: string; classLevel: string }[];
 
-// Signup with role, fullName, and subjects/classes
+/**
+ * ✅ Register user with role (student/teacher)
+ * Stores extra user info in Firestore and updates Firebase Auth profile
+ */
 export const registerWithRole = async (
   email: string,
   password: string,
@@ -21,26 +26,31 @@ export const registerWithRole = async (
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
-  // Save extra info in Firestore
+  // ✅ Set display name in Firebase Auth (for use in dashboards)
+  await updateProfile(user, { displayName: fullName });
+
+  // ✅ Save extra info in Firestore
   await setDoc(doc(db, "users", user.uid), {
+    uid: user.uid,
     fullName,
     email,
     role,
     ...(role === "student"
-      ? { studentSubjects: subjectsOrTeaching }  // string[]
-      : { teaching: subjectsOrTeaching }),       // {subject,classLevel}[]
+      ? { studentSubjects: subjectsOrTeaching } // string[]
+      : { teaching: subjectsOrTeaching }), // {subject,classLevel}[]
     createdAt: serverTimestamp(),
   });
 
   return user;
 };
 
-// Login and fetch user data including role
+/**
+ * ✅ Login and return user data + role
+ */
 export const loginWithRole = async (email: string, password: string) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
-  // Get user info from Firestore
   const docRef = doc(db, "users", user.uid);
   const docSnap = await getDoc(docRef);
 
@@ -50,16 +60,22 @@ export const loginWithRole = async (email: string, password: string) => {
 
   const userData = docSnap.data();
 
-  return { 
-    user, 
+  return {
+    user,
     role: userData.role as "student" | "teacher",
-    studentSubjects: userData.studentSubjects || [], // for students
-    teaching: userData.teaching || []               // for teachers
+    studentSubjects: userData.studentSubjects || [],
+    teaching: userData.teaching || [],
   };
 };
 
-// Logout
-export const logout = () => signOut(auth);
+/**
+ * ✅ Logout user
+ */
+export const logout = async () => {
+  await signOut(auth);
+};
 
-// Optional: Get current user
+/**
+ * ✅ Optional helper to get current logged-in user
+ */
 export const getCurrentUser = (): User | null => auth.currentUser;
