@@ -31,14 +31,14 @@ export default function Login() {
       if (role === "student") {
         navigate("/student-dashboard", {
           state: {
-            studentSubjects,
             fullName: user.displayName,
             email: user.email,
+            studentSubjects,
           },
         });
       } else {
         navigate("/teacher-dashboard", {
-          state: { teaching, fullName: user.displayName, email: user.email },
+          state: { fullName: user.displayName, email: user.email, teaching },
         });
       }
     } catch (error: any) {

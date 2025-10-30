@@ -43,19 +43,19 @@ export default function Signup() {
         );
       }
 
-      // Update displayName
+      // ✅ Update displayName
       await updateProfile(user, { displayName: fullName });
 
-      // ✅ Send email verification
+      // ✅ Send verification email
       await sendEmailVerification(user);
 
       alert(
-        "Account created successfully! Please check your email to verify your account before logging in."
+        "Account created successfully! Check your email to verify your account before logging in."
       );
 
       navigate("/login");
     } catch (error: any) {
-      alert(error.message || "Signup failed, please try again.");
+      alert(error.message || "Signup failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -169,9 +169,7 @@ export default function Signup() {
           )}
 
           <button type="submit" className="signup-btn" disabled={loading}>
-            {loading
-              ? "Creating Account..."
-              : `Sign Up as ${role === "student" ? "Student" : "Teacher"}`}
+            {loading ? "Creating Account..." : `Sign Up as ${role}`}
           </button>
         </form>
 
