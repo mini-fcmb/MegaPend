@@ -168,7 +168,7 @@ const MainContent: React.FC = () => {
           viewport={{ once: true }}
           className="bg-white text-blue-700 hover:bg-gray-200 px-8 py-3 rounded-2xl font-semibold transition"
         >
-          Create Your Account Now 🚀
+          <Link to="/signup"> Create Your Account Now 🚀</Link>
         </motion.button>
       </section>
     </main>

@@ -1,8 +1,7 @@
-// src/pages/TeacherDashboard.tsx
 import { useState, FormEvent, useEffect } from "react";
 import { addContent } from "../firebase/contentService";
 import { useLocation } from "react-router-dom";
-import { auth } from "../firebase/config"; // import Firebase Auth
+import { auth } from "../firebase/config";
 import "./teacher.css";
 
 export default function TeacherDashboard() {
@@ -22,7 +21,6 @@ export default function TeacherDashboard() {
   const [loading, setLoading] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
-  // ✅ Get user info from Firebase Auth
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
@@ -37,7 +35,6 @@ export default function TeacherDashboard() {
     return () => unsubscribe();
   }, []);
 
-  // ✅ Detect dark mode
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
@@ -71,7 +68,6 @@ export default function TeacherDashboard() {
 
   return (
     <div className={`dashboard ${isDark ? "dark" : ""}`}>
-      {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <ul>
           <li>Dashboard</li>
@@ -88,15 +84,12 @@ export default function TeacherDashboard() {
         </ul>
       </aside>
 
-      {/* Main Content */}
       <div className="main">
-        {/* Top Navbar */}
         <div className="top-bar">
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             ☰
           </button>
 
-          {/* Avatar */}
           <div className="avatar-wrapper" onClick={toggleAvatar}>
             {teacherPhoto ? (
               <img src={teacherPhoto} alt="Profile" className="avatar" />
@@ -127,7 +120,6 @@ export default function TeacherDashboard() {
         <h1 className="dashboard-title animate-pulse">Teacher Dashboard ✨</h1>
 
         <div className="content-grid">
-          {/* Add New Content Form */}
           <div className="card form-card">
             <h2>Add New Content</h2>
             <form onSubmit={handleSubmit} className="content-form">
@@ -185,7 +177,6 @@ export default function TeacherDashboard() {
             </form>
           </div>
 
-          {/* Tips & Tricks */}
           <div className="card tips-card">
             <h2>Tips & Tricks</h2>
             <ul>
@@ -204,7 +195,6 @@ export default function TeacherDashboard() {
             </ul>
           </div>
 
-          {/* Placeholder cards */}
           {[...Array(4)].map((_, i) => (
             <div key={i} className="card empty">
               +

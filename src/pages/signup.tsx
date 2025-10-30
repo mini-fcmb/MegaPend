@@ -45,13 +45,10 @@ export default function Signup() {
         );
       }
 
-      // Update displayName
       await updateProfile(user, { displayName: fullName });
 
-      // Send verification email
       await sendEmailVerification(user);
 
-      // ✅ Store verification tracking in Firestore
       await setDoc(doc(db, "emailVerification", user.uid), {
         lastSentAt: serverTimestamp(),
         attemptsToday: 1,
@@ -141,6 +138,7 @@ export default function Signup() {
               <label>Subjects & Classes</label>
               <button
                 type="button"
+                className="asbtn"
                 onClick={() =>
                   setTeaching([...teaching, { subject: "", classLevel: "" }])
                 }

@@ -400,6 +400,10 @@ header {
   font-weight: 600;
   transition: all 0.3s ease-in-out;
 }
+.cta-section button a{text-decoration: none;
+  font-weight: 500;
+  color: var(--cta);
+}
 
 .cta-section button:hover {
   background-color:var(--cta-section-button);
@@ -480,6 +484,7 @@ html {
 /* login style*/
 .login-page {
   min-height: 100vh;
+  padding: 5rem 10%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -563,20 +568,20 @@ html {
   text-decoration: underline;
 }
 /* signup sytle*/
-/* Signup Page Styling */
 .signup-container {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(to bottom right, var(--primary-color), #6366f1);
+  padding: 5rem 10%;
+  background: linear-gradient(to bottom right, var(--primary-color), var(--bg-color));
   transition: background 0.3s ease;
 }
 
 .signup-card {
   background-color: var(--bg-color);
   color: var(--text-color);
-  box-shadow: var(--box-shadow);
+  box-shadow: 0 0 10px var(--shadow-color-lg);
   border-radius: 16px;
   padding: 2rem;
   width: 100%;
@@ -588,7 +593,7 @@ html {
   text-align: center;
   font-size: 1.8rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--text-color);
   margin-bottom: 1.5rem;
 }
 
@@ -615,7 +620,7 @@ html {
 }
 
 .role-toggle button.active {
-  background: var(--primary-color);
+  background: var(--shadow-color-lg);
   color: #fff;
 }
 
@@ -641,7 +646,7 @@ html {
 
 .signup-btn {
   width: 100%;
-  background: var(--primary-color);
+  background: rgb(128, 126, 126);
   color: white;
   border: none;
   padding: 12px;
@@ -652,15 +657,18 @@ html {
 }
 
 .signup-btn:hover {
-  background: #4f46e5;
+  background: var(--shadow-color-lg);
 }
 
 .signup-footer {
   text-align: center;
   margin-top: 1rem;
 }
-
-.signup-link {
-  color: var(--primary-color);
-  font-weight: 600;
+.asbtn{
+  background-color: var(--shadow-color-lg);
+  color: var(--cta);
+  border-radius: 10px;
+  width: 100px;
+  border: 1px solid whitesmoke;
+  margin-bottom: 10px;
 }

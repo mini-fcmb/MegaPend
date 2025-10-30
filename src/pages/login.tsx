@@ -12,7 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
-  const [user, setUser] = useState<any>(null); // store user to resend verification
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
 
   const handleLogin = async (e: FormEvent) => {
@@ -60,7 +60,7 @@ export default function Login() {
     setResendLoading(true);
 
     try {
-      await resendVerificationEmail(user.user); // call the new service
+      await resendVerificationEmail(user.user);
       alert(
         "Verification email resent! Check your inbox. It will expire in 10 minutes."
       );

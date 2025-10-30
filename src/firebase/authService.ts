@@ -1,4 +1,3 @@
-// src/firebase/authService.ts
 import { auth, db } from "./config";
 import {
   createUserWithEmailAndPassword,
@@ -24,9 +23,6 @@ interface VerificationData {
   attemptsToday: number;
 }
 
-/**
- * ✅ Register user with role + send verification email
- */
 export const registerWithRole = async (
   email: string,
   password: string,
@@ -39,7 +35,6 @@ export const registerWithRole = async (
 
   await updateProfile(user, { displayName: fullName });
 
-  // Save extra info in Firestore including verification tracking
   const userRef = doc(db, "users", user.uid);
   await setDoc(userRef, {
     uid: user.uid,
@@ -49,18 +44,16 @@ export const registerWithRole = async (
     ...(role === "student"
       ? { studentSubjects: subjectsOrTeaching }
       : { teaching: subjectsOrTeaching }),
-    verification: { lastSent: serverTimestamp(), attemptsToday: 1 }, // initialize
+    verification: { lastSent: serverTimestamp(), attemptsToday: 1 },
     createdAt: serverTimestamp(),
   });
 
-  await sendEmailVerification(user); // send first verification email
+  await sendEmailVerification(user);
 
   return user;
 };
 
-/**
- * ✅ Resend verification email (with 10-min expiry and 3 attempts/day)
- */
+
 export const resendVerificationEmail = async (user: User) => {
   const userRef = doc(db, "users", user.uid);
   const docSnap = await getDoc(userRef);
@@ -71,7 +64,6 @@ export const resendVerificationEmail = async (user: User) => {
   const now = Timestamp.now();
   const verification: VerificationData = data.verification || { lastSent: now, attemptsToday: 0 };
 
-  // Reset attempts if new day
   const lastSentDate = verification.lastSent.toDate();
   const today = new Date();
   if (
@@ -82,30 +74,23 @@ export const resendVerificationEmail = async (user: User) => {
     verification.attemptsToday = 0;
   }
 
-  // Check attempts limit
   if (verification.attemptsToday >= 3) {
     throw new Error("You have reached the maximum of 3 verification attempts today.");
   }
 
-  // Check 10-min cooldown
   const diff = now.toMillis() - verification.lastSent.toMillis();
   if (diff < 10 * 60 * 1000) {
     throw new Error("You can only request a new verification email every 10 minutes.");
   }
 
-  // Send email
   await sendEmailVerification(user);
 
-  // Update Firestore
   await updateDoc(userRef, {
     verification: { lastSent: now, attemptsToday: verification.attemptsToday + 1 },
   });
 };
 
-/**
- * ✅ Login with role
- * Throws error if email not verified
- */
+
 export const loginWithRole = async (email: string, password: string) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;

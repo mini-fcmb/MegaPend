@@ -23,15 +23,12 @@ function NavBar({ theme, setTheme }: NavBarProps) {
 
   const showThemeButton = theme && setTheme;
 
-  // ✅ Smart Home Click
   const handleHomeClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
     if (location.pathname === "/") {
-      // already on home → refresh
       window.location.reload();
     } else {
-      // navigate to home
       navigate("/");
     }
   };
