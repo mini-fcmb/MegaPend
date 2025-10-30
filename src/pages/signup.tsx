@@ -2,7 +2,9 @@ import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../index.css";
 import { registerWithRole } from "../firebase/authService";
-import { updateProfile, sendEmailVerification } from "firebase/auth";
+import { updateProfile, sendEmailVerification, User } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase/config";
 
 export default function Signup() {
   const [role, setRole] = useState<"student" | "teacher">("student");
@@ -22,7 +24,7 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      let user;
+      let user: User;
 
       if (role === "student") {
         const studentSubjects = classLevel.split(",").map((c) => c.trim());
@@ -43,14 +45,20 @@ export default function Signup() {
         );
       }
 
-      // ✅ Update displayName
+      // Update displayName
       await updateProfile(user, { displayName: fullName });
 
-      // ✅ Send verification email
+      // Send verification email
       await sendEmailVerification(user);
 
+      // ✅ Store verification tracking in Firestore
+      await setDoc(doc(db, "emailVerification", user.uid), {
+        lastSentAt: serverTimestamp(),
+        attemptsToday: 1,
+      });
+
       alert(
-        "Account created successfully! Check your email to verify your account before logging in."
+        "Account created successfully! Check your email to verify your account before logging in. You have 10 minutes to verify before requesting a new code."
       );
 
       navigate("/login");
