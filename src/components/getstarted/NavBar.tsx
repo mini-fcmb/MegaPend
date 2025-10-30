@@ -1,25 +1,40 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import "boxicons/css/boxicons.min.css";
-import "../styles/theme.css";
-import logo from "../assets/MegaPend logo Design.png";
-import { Link } from "react-router-dom";
+import "./styles/theme.css";
+import logo from "../../assets/MegaPend Logo Design.png";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 interface NavBarProps {
-  theme?: "light" | "dark"; // optional now
-  setTheme?: Dispatch<SetStateAction<"light" | "dark">>; // optional
+  theme?: "light" | "dark";
+  setTheme?: Dispatch<SetStateAction<"light" | "dark">>;
 }
 
 function NavBar({ theme, setTheme }: NavBarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleSidePanel = () => setIsOpen(!isOpen);
 
   const toggleTheme = () => {
-    if (!theme || !setTheme) return; // don't do anything if props not provided
+    if (!theme || !setTheme) return;
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
   const showThemeButton = theme && setTheme;
+
+  // ✅ Smart Home Click
+  const handleHomeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (location.pathname === "/") {
+      // already on home → refresh
+      window.location.reload();
+    } else {
+      // navigate to home
+      navigate("/");
+    }
+  };
 
   return (
     <>
@@ -34,19 +49,30 @@ function NavBar({ theme, setTheme }: NavBarProps) {
         <nav className="nav-desktop">
           <ul>
             <li>
-              <Link to={"/"}>Home</Link>
+              {" "}
+              <a
+                href="#hero"
+                onClick={handleHomeClick}
+                className="hover:text-blue-600"
+              >
+                Home
+              </a>
             </li>
             <li>
-              <Link to={"/courses"}>Courses</Link>
+              {" "}
+              <a href="#features" className="hover:text-blue-600">
+                Features
+              </a>
             </li>
             <li>
-              <Link to={"/quiz"}>Quizzes</Link>
+              <a href="#testimonials" className="hover:text-blue-600">
+                Testimonials
+              </a>
             </li>
             <li>
-              <Link to={"/dashboard"}>Dashboard</Link>
-            </li>
-            <li>
-              <Link to={"/login"}>Login</Link>
+              <a href="#cta" className="hover:text-blue-600">
+                Join Us
+              </a>
             </li>
           </ul>
         </nav>
@@ -73,19 +99,30 @@ function NavBar({ theme, setTheme }: NavBarProps) {
 
         <ul className="sidepanel-a">
           <li>
-            <Link to={"/"}>Home</Link>
+            <a
+              href="#hero"
+              onClick={handleHomeClick}
+              className="hover:text-blue-600"
+            >
+              Home
+            </a>
+          </li>{" "}
+          <li>
+            <a href="#features" className="hover:text-blue-600">
+              Features
+            </a>
           </li>
           <li>
-            <Link to={"/courses"}>Courses</Link>
+            {" "}
+            <a href="#testimonials" className="hover:text-blue-600">
+              Testimonials
+            </a>
           </li>
           <li>
-            <Link to={"/quiz"}>Quizzes</Link>
-          </li>
-          <li>
-            <Link to={"/dashboard"}>Dashboard</Link>
-          </li>
-          <li>
-            <Link to={"/login"}>Login</Link>
+            {" "}
+            <a href="#cta" className="hover:text-blue-600">
+              Join Us
+            </a>
           </li>
         </ul>
 

@@ -1,6 +1,7 @@
+import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { motion, Variants } from "framer-motion";
-import "../index.css";
+import "../../index.css";
 
 const fadeIn = (
   direction: "up" | "down" | "left" | "right" = "up",
@@ -53,7 +54,10 @@ const MainContent: React.FC = () => {
 
   return (
     <main className="main-container min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-500">
-      <section className="hero-section flex flex-col items-center justify-center text-center py-20 px-6 md:px-12">
+      <section
+        id="hero"
+        className="hero-section flex flex-col items-center justify-center text-center py-20 px-6 md:px-12"
+      >
         <motion.h1
           variants={fadeIn("up", 0.2)}
           initial="hidden"
@@ -84,7 +88,7 @@ const MainContent: React.FC = () => {
           className="flex gap-4 flex-wrap justify-center"
         >
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg transition">
-            Get Started
+            <Link to="/login"> Get Started</Link>
           </button>
           <button className="border border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white px-6 py-3 rounded-2xl font-semibold transition">
             Explore Courses
@@ -92,7 +96,10 @@ const MainContent: React.FC = () => {
         </motion.div>
       </section>
 
-      <section className="features-section py-20 bg-gray-50 dark:bg-gray-800 text-center">
+      <section
+        id="features"
+        className="features-section py-20 bg-gray-50 dark:bg-gray-800 text-center"
+      >
         <motion.h2
           variants={fadeIn("up", 0.2)}
           initial="hidden"
@@ -121,7 +128,10 @@ const MainContent: React.FC = () => {
         </div>
       </section>
 
-      <section className="testimonials-section py-20 px-6 text-center">
+      <section
+        id="testimonials"
+        className="testimonials-section py-20 px-6 text-center"
+      >
         <motion.blockquote
           variants={fadeIn("up", 0.2)}
           initial="hidden"
@@ -137,7 +147,10 @@ const MainContent: React.FC = () => {
         </motion.blockquote>
       </section>
 
-      <section className="cta-section py-20 bg-blue-600 dark:bg-blue-700 text-center text-white">
+      <section
+        id="cta"
+        className="cta-section py-20 bg-blue-600 dark:bg-blue-700 text-center text-white"
+      >
         <motion.h2
           variants={fadeIn("up", 0.2)}
           initial="hidden"
@@ -147,6 +160,7 @@ const MainContent: React.FC = () => {
         >
           Join thousands of students and teachers on MegaPend today.
         </motion.h2>
+
         <motion.button
           variants={fadeIn("up", 0.4)}
           initial="hidden"

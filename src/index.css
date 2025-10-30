@@ -115,7 +115,7 @@ header {
 
 .side-panel ul {
   list-style: none;
-  margin-top: 40px;
+  margin-top: 80px;
 }
 
 .side-panel li {
@@ -151,6 +151,9 @@ header {
 .hero-section {
   text-align: center;
   padding: 100px 50px;
+  margin-top: 18%;
+  scroll-margin-top: 100px;
+  
 }
 
 .hero-section h1 {
@@ -211,6 +214,10 @@ header {
   --cta-main-color:white;
   --cta:black;
   --bdc:#2563eb;
+  --bg-color-lg: #ffffff;
+  --text-color-lg: #111111;
+  --shadow-color-lg: #2563eb;
+  --btn-hover:#4338ca;
 
 
 }
@@ -230,6 +237,9 @@ header {
   --cta-main-color:white;
   --cta:black;
   --bdc:white;
+  --bg-color-lg: #0d1117;
+  --shadow-color-lg:rgb(126, 201, 13) ;
+  --btn-hover:rgb(182, 235, 182);
 
 }
 
@@ -267,12 +277,17 @@ header {
   border-radius: 9999px;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
+  margin-bottom: 15px;
 }
 
 .hero-section button:first-child {
   background-color: var(--hero-section-button);
   color: white;
   border: none;
+}
+.hero-section button:first-child a{
+  text-decoration: none;
+  color: var(--primary-color);
 }
 
 .hero-section button:first-child:hover {
@@ -295,6 +310,9 @@ header {
   background-color: #f9fafb;
   padding: 5rem 1.5rem;
   text-align: center;
+  scroll-margin-top: 5px;
+  
+  
 }
 
 .features-section h2 {
@@ -411,9 +429,8 @@ header {
     ;
   }
 }
-/* Theme toggle button */
 .theme-toggle {
-  display: inline-block; /* visible on desktop */
+  display: inline-block; 
   cursor: pointer;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
@@ -429,18 +446,16 @@ header {
   color: #fff;
 }
 
-/* Responsive adjustments for side panel and smaller screens */
 @media (max-width: 1024px) {
-  /* Hide default theme button */
+ 
   .theme-toggle {
     display: none;
   }
 
-  /* Show theme button in side panel with full width */
   .side-panel .theme-toggle {
     display: block;
     margin-top: 20px;
-    width: 100%; /* stretch to fill panel */
+    width: 100%;
     text-align: center;
     padding: 0.75rem 0;
     font-weight: 600;
@@ -457,3 +472,93 @@ header {
   }
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+
+/* login style*/
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-color);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-card {
+  background:var(--bg-color-lg);
+  color:  var(--text-color-lg);
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 100%;
+  box-shadow: 0 8px 20px var(--shadow-color-lg);
+  max-width: 400px;
+  text-align: center;
+  transition: all 0.3s ease;
+
+}
+
+.login-card h2 {
+  color: var(--text-color-lg);
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  border-color: #4f46e5;
+  outline: none;
+}
+
+.btn {
+  width: 100%;
+  background-color:var(--shadow-color-lg);
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: var(--btn-hover);
+}
+
+.signup-text {
+  margin-top: 1rem;
+  color: #555;
+}
+
+.signup-link {
+  color:var(--shadow-color-lg);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+}

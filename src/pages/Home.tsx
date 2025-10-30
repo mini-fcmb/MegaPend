@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import NavBar from "../components/NavBar";
-import MainContent from "../components/maincontent";
-import "../styles/theme.css";
+import NavBar from "../components/getstarted/NavBar";
+import MainContent from "../components/getstarted/maincontent";
 
 const Home: React.FC = () => {
   const [theme, setTheme] = useState<"light" | "dark">(

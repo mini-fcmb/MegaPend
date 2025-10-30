@@ -1,37 +1,14 @@
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import Quiz from "./pages/Quiz";
-import Courses from "./pages/courses";
-import ProtectedRoute from "./components/protectedroute";
 import Login from "./pages/login";
+import Signup from "./pages/signup";
+import ProtectedRoute from "./components/protectedroute";
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route
-        path="/courses"
-        element={
-          <ProtectedRoute>
-            <Courses />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/quiz"
-        element={
-          <ProtectedRoute>
-            <Quiz />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/quiz"
-        element={
-          <ProtectedRoute>
-            <Login />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
     </Routes>
   );
 }
