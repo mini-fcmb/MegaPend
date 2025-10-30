@@ -562,3 +562,105 @@ html {
 .signup-link:hover {
   text-decoration: underline;
 }
+/* signup sytle*/
+/* Signup Page Styling */
+.signup-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, var(--primary-color), #6366f1);
+  transition: background 0.3s ease;
+}
+
+.signup-card {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  box-shadow: var(--box-shadow);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  transition: all 0.3s ease;
+}
+
+.signup-title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+}
+
+/* Role Toggle */
+.role-toggle {
+  display: flex;
+  justify-content: space-between;
+  background: var(--bg-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.role-toggle button {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-color);
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.role-toggle button.active {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.signup-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.signup-form input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 1rem;
+  outline: none;
+  transition: border 0.3s ease;
+}
+
+.signup-form input:focus {
+  border-color: var(--primary-color);
+}
+
+.signup-btn {
+  width: 100%;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.signup-btn:hover {
+  background: #4f46e5;
+}
+
+.signup-footer {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.signup-link {
+  color: var(--primary-color);
+  font-weight: 600;
+}

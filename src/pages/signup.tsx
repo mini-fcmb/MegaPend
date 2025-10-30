@@ -1,58 +1,160 @@
-import { Link } from "react-router-dom";
+import { useState, FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../index.css";
+import { registerWithRole } from "../firebase/authService";
 
 export default function Signup() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 to-indigo-600">
-      <div className="bg-white shadow-2xl rounded-2xl w-full max-w-md p-8">
-        <h2 className="text-3xl font-bold text-center text-purple-600 mb-6">
-          Create Account ✨
-        </h2>
+  const [role, setRole] = useState<"student" | "teacher">("student");
+  const [fullName, setFullName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [classLevel, setClassLevel] = useState<string>("SS1"); // For students
+  const [teaching, setTeaching] = useState<
+    { subject: string; classLevel: string }[]
+  >([]); // For teachers
+  const navigate = useNavigate();
 
-        <form className="space-y-5">
+  const handleSignup = async (e: FormEvent) => {
+    e.preventDefault();
+
+    try {
+      if (role === "student") {
+        // Students: store array of classes/levels (comma separated)
+        const studentSubjects = classLevel.split(",").map((c) => c.trim());
+        await registerWithRole(
+          email,
+          password,
+          role,
+          fullName,
+          studentSubjects
+        );
+      } else {
+        // Teachers: store array of {subject, classLevel} objects
+        await registerWithRole(email, password, role, fullName, teaching);
+      }
+
+      alert("Account created successfully!");
+      navigate("/login");
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  return (
+    <div className="signup-container">
+      <div className="signup-card">
+        <h2 className="signup-title">Create Account ✨</h2>
+
+        <div className="role-toggle">
+          <button
+            type="button"
+            className={role === "student" ? "active" : ""}
+            onClick={() => setRole("student")}
+          >
+            Student
+          </button>
+          <button
+            type="button"
+            className={role === "teacher" ? "active" : ""}
+            onClick={() => setRole("teacher")}
+          >
+            Teacher
+          </button>
+        </div>
+
+        <form className="signup-form" onSubmit={handleSignup}>
           <div>
-            <label className="block mb-2 font-medium text-gray-700">
-              Full Name
-            </label>
+            <label>Full Name</label>
             <input
               type="text"
-              placeholder="Enter your name"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter your full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
             />
           </div>
 
           <div>
-            <label className="block mb-2 font-medium text-gray-700">
-              Email
-            </label>
+            <label>Email</label>
             <input
               type="email"
               placeholder="Enter your email"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
           <div>
-            <label className="block mb-2 font-medium text-gray-700">
-              Password
-            </label>
+            <label>Password</label>
             <input
               type="password"
-              placeholder="Enter your password"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              placeholder="Create a password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
-          >
-            Sign Up
+          {role === "student" ? (
+            <div>
+              <label>Class / Level (comma separated if multiple)</label>
+              <input
+                type="text"
+                placeholder="e.g., SS2, SS3"
+                value={classLevel}
+                onChange={(e) => setClassLevel(e.target.value)}
+                required
+              />
+            </div>
+          ) : (
+            <div>
+              <label>Subjects & Classes</label>
+              <button
+                type="button"
+                onClick={() =>
+                  setTeaching([...teaching, { subject: "", classLevel: "" }])
+                }
+              >
+                Add Subject
+              </button>
+              {teaching.map((t, i) => (
+                <div key={i} style={{ marginTop: "5px" }}>
+                  <input
+                    type="text"
+                    placeholder="Subject"
+                    value={t.subject}
+                    onChange={(e) => {
+                      const newTeaching = [...teaching];
+                      newTeaching[i].subject = e.target.value;
+                      setTeaching(newTeaching);
+                    }}
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Class"
+                    value={t.classLevel}
+                    onChange={(e) => {
+                      const newTeaching = [...teaching];
+                      newTeaching[i].classLevel = e.target.value;
+                      setTeaching(newTeaching);
+                    }}
+                    required
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button type="submit" className="signup-btn">
+            Sign Up as {role === "student" ? "Student" : "Teacher"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-600 mt-6">
+        <p className="signup-footer">
           Already have an account?{" "}
-          <Link to="/login" className="text-purple-600 font-semibold">
+          <Link to="/login" className="signup-link">
             Log In
           </Link>
         </p>
