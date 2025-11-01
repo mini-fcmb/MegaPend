@@ -1,150 +1,234 @@
-// src/components/Chatbot.tsx
-import React, { useState, useEffect, useRef } from "react";
-import "./Chatbot.css"; // Make sure to create or update this CSS
+import { useState, FormEvent, ChangeEvent } from "react";
+import "./chatbot.css";
 
-interface ChatMessage {
-  id: string;
+interface Message {
+  sender: "user" | "bot";
   text: string;
-  sender: "bot" | "user";
-  timestamp?: string;
+  file?: string;
 }
 
-interface ChatbotProps {
-  theme: "light" | "dark";
+interface ChatTopic {
+  topic: string;
+  messages: Message[];
 }
 
-const Chatbot: React.FC<ChatbotProps> = ({ theme }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
+export default function Chatbot() {
+  const [chats, setChats] = useState<ChatTopic[]>([
     {
-      id: crypto.randomUUID(),
-      text: "Hello! How can I help you with your studies today?",
-      sender: "bot",
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      topic: "Welcome Chat",
+      messages: [{ sender: "bot", text: "Hello! How can I help you today?" }],
     },
   ]);
+  const [activeChatIndex, setActiveChatIndex] = useState(0);
   const [input, setInput] = useState("");
-  const [sidebarVisible, setSidebarVisible] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showFileOptions, setShowFileOptions] = useState(false);
+  const [logo, setLogo] = useState<string>("");
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const activeChat = chats[activeChatIndex];
 
-  const sendMessage = () => {
+  const sendMessage = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: input,
-      sender: "user",
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessage: Message = { sender: "user", text: input };
+    setChats((prev) => {
+      const updated = [...prev];
+      updated[activeChatIndex].messages.push(newMessage);
+      return updated;
+    });
+    const userMessage = input;
     setInput("");
 
-    const typingId = crypto.randomUUID();
-    setMessages((prev) => [
-      ...prev,
-      { id: typingId, text: "Typing...", sender: "bot" },
-    ]);
-
-    setTimeout(() => {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === typingId
-            ? {
-                ...msg,
-                text: `Echo: ${userMessage.text}`,
-                timestamp: new Date().toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-              }
-            : msg
-        )
-      );
-    }, 1200);
+    try {
+      const response = await fetch("YOUR_API_ENDPOINT", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage }),
+      });
+      const data = await response.json();
+      setChats((prev) => {
+        const updated = [...prev];
+        updated[activeChatIndex].messages.push({
+          sender: "bot",
+          text: data.reply || "No response",
+        });
+        return updated;
+      });
+    } catch {
+      setChats((prev) => {
+        const updated = [...prev];
+        updated[activeChatIndex].messages.push({
+          sender: "bot",
+          text: "Error: Could not reach API",
+        });
+        return updated;
+      });
+    }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") sendMessage();
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setInput(e.target.value);
+
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>, type: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setChats((prev) => {
+        const updated = [...prev];
+        updated[activeChatIndex].messages.push({
+          sender: "user",
+          text: `Uploaded (${type}): ${file.name}`,
+          file: reader.result as string,
+        });
+        return updated;
+      });
+    };
+    reader.readAsDataURL(file);
+    setShowFileOptions(false);
   };
+
+  const handleLogoUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setLogo(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  const startNewChat = () => {
+    const topic = `Chat ${chats.length + 1}`;
+    setChats([...chats, { topic, messages: [] }]);
+    setActiveChatIndex(chats.length);
+  };
+
+  const fileOptions = [
+    { type: "Photo", icon: "bx-image" },
+    { type: "Video", icon: "bx-video" },
+    { type: "Clips", icon: "bx-film" },
+    { type: "Document", icon: "bx-file" },
+  ];
 
   return (
-    <div className={`chatbot-page ${theme}`}>
+    <div className="chatbot-container">
       {/* Sidebar */}
-      <aside
-        className={`chatbot-sidebar ${sidebarVisible ? "visible" : "hidden"}`}
-      >
-        <div className="chatbot-logo">
-          <div className="logo-icon">EF</div>
-          <div className="logo-text">
-            <h1>EduFlow</h1>
-            <p>v1.0</p>
+      <aside className={`sidebar ${sidebarOpen ? "open" : "collapsed"}`}>
+        <div className="logo-toggle-container">
+          {/* Logo on left (hidden when collapsed) */}
+          {sidebarOpen && (
+            <label className="logo-circle">
+              {logo ? <img src={logo} alt="logo" /> : <span>Logo</span>}
+              <input
+                type="file"
+                onChange={handleLogoUpload}
+                style={{ display: "none" }}
+              />
+            </label>
+          )}
+
+          {/* Toggle button always on right */}
+          <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+            <i className="bx bx-left-arrow-alt"></i>
+          </button>
+        </div>
+
+        <div className="sidebar-menu">
+          <div className="menu-item" onClick={startNewChat}>
+            <i className="bx bx-plus menu-icon"></i>
+            {sidebarOpen && <span className="menu-text">New Chat</span>}
+          </div>
+
+          <div className="menu-item">
+            <i className="bx bx-book menu-icon"></i>
+            {sidebarOpen && <span className="menu-text">Library</span>}
+          </div>
+
+          <div className="menu-item">
+            <i className="bx bx-folder menu-icon"></i>
+            {sidebarOpen && <span className="menu-text">Projects</span>}
           </div>
         </div>
 
-        <nav className="chatbot-nav">
-          <div className="nav-item active">Home</div>
-          <div className="nav-item">Topics</div>
-          <div className="nav-item">Library</div>
-          <div className="nav-item">History</div>
-        </nav>
-
-        <div className="chatbot-prompts">
-          <p>Ask a math question.</p>
-          <p>Explain a concept.</p>
-          <p>Give an example problem.</p>
-          <p>Check my answer.</p>
+        {/* Chat History Container */}
+        <div
+          className="chat-history-section"
+          style={{ marginTop: "auto", overflowY: "auto" }}
+        >
+          {sidebarOpen && <h3 className="chat-history-title">Chat History</h3>}
+          {chats.map((chat, i) => (
+            <div
+              key={i}
+              className={`menu-item ${activeChatIndex === i ? "active" : ""}`}
+              onClick={() => setActiveChatIndex(i)}
+            >
+              <i className="bx bx-chat menu-icon"></i>
+              {sidebarOpen && <span className="menu-text">{chat.topic}</span>}
+            </div>
+          ))}
         </div>
       </aside>
 
-      {/* Main chat area */}
-      <main className="chatbot-main">
-        <header className="chatbot-header">
-          <div className="title">EduFlow AI</div>
-          <button
-            className="sidebar-toggle-btn"
-            onClick={() => setSidebarVisible((prev) => !prev)}
-          >
-            ☰
-          </button>
-        </header>
-
-        <section className="chatbot-messages">
-          {messages.map((msg) => (
-            <div key={msg.id} className={`message ${msg.sender}-message`}>
+      {/* Chat Area */}
+      <main className={`chat-area ${sidebarOpen ? "expanded" : "collapsed"}`}>
+        <div className="messages">
+          {activeChat.messages.map((msg, i) => (
+            <div key={i} className={`message ${msg.sender}`}>
               {msg.text}
-              {msg.timestamp && (
-                <div className="timestamp">{msg.timestamp}</div>
+              {msg.file && (
+                <img src={msg.file} alt="uploaded" className="uploaded-image" />
               )}
             </div>
           ))}
-          <div ref={messagesEndRef} />
-        </section>
+        </div>
 
-        <footer className="chatbot-input-area">
-          <input
-            type="text"
-            placeholder="Type your question..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
-          <button className="send-btn" onClick={sendMessage}>
-            ➤
-          </button>
-        </footer>
+        {/* Input */}
+        <form className="input-area" onSubmit={sendMessage}>
+          <div className="input-wrapper">
+            <i className="bx bx-message-rounded input-icon"></i>
+            <input
+              type="text"
+              placeholder="Type a message..."
+              value={input}
+              onChange={handleChange}
+            />
+
+            {/* File Upload */}
+            <div className="upload-wrapper">
+              <button
+                type="button"
+                className="upload-btn"
+                onClick={() => setShowFileOptions(!showFileOptions)}
+              >
+                <i className="bx bx-paperclip"></i>
+              </button>
+
+              {showFileOptions && (
+                <div className="file-options top-left">
+                  {fileOptions.map((option) => (
+                    <label key={option.type}>
+                      <i className={`bx ${option.icon}`}></i>
+                      {option.type}
+                      <input
+                        type="file"
+                        style={{ display: "none" }}
+                        onChange={(e) => handleFileUpload(e, option.type)}
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Send Button */}
+            <button type="submit" className="send-btn">
+              <i className="bx bx-up-arrow-alt"></i>
+            </button>
+          </div>
+        </form>
       </main>
     </div>
   );
-};
-
-export default Chatbot;
+}
