@@ -1,3 +1,4 @@
+// App.tsx
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
@@ -19,18 +20,18 @@ function App() {
 
   return (
     <Routes>
-      {/* Home/GetStarted */}
+      {/* Default route */}
       <Route path="/" element={<Home theme={theme} setTheme={setTheme} />} />
 
-      {/* Auth routes */}
+      {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      {/* Protected dashboards */}
+      {/* Protected routes */}
       <Route
         path="/teacher-dashboard"
         element={
-          <ProtectedRoute role="teacher">
+          <ProtectedRoute>
             <TeacherDashboard />
           </ProtectedRoute>
         }
@@ -38,13 +39,13 @@ function App() {
       <Route
         path="/student-dashboard"
         element={
-          <ProtectedRoute role="student">
+          <ProtectedRoute>
             <StudentDashboard />
           </ProtectedRoute>
         }
       />
 
-      {/* Catch-all redirect */}
+      {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

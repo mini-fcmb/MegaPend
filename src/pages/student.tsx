@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./student.css";
+import "./teacher.css";
 
 interface LocationState {
   fullName?: string;

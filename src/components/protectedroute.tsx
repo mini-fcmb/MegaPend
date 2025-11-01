@@ -1,18 +1,15 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { onUserStateChanged } from "../firebase/authService";
 
 interface ProtectedRouteProps {
   children: JSX.Element;
-  role: "teacher" | "student";
 }
 
-export default function ProtectedRoute({
-  children,
-  role,
-}: ProtectedRouteProps) {
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [userChecked, setUserChecked] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const location = useLocation();
 
   useEffect(() => {
     const unsubscribe = onUserStateChanged((u) => {
@@ -24,11 +21,10 @@ export default function ProtectedRoute({
 
   if (!userChecked) return <div>Checking authentication...</div>;
 
-  if (!user) return <Navigate to="/login" replace />;
-
-  // Ensure user has correct role
-  const storedRole = localStorage.getItem("role");
-  if (storedRole !== role) return <Navigate to="/login" replace />;
+  // Only redirect if the user is not logged in AND trying to access dashboard
+  if (!user && location.pathname !== "/login" && location.pathname !== "/") {
+    return <Navigate to="/login" replace />;
+  }
 
   return children;
 }

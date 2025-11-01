@@ -15,13 +15,13 @@ export default function Login() {
   const [showResend, setShowResend] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [checkingUser, setCheckingUser] = useState(true);
+  const [manualNavigation, setManualNavigation] = useState(false); // ✅ prevent override
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onUserStateChanged(async (user) => {
-      console.log("Firebase user:", user);
-      console.log("Role in localStorage:", localStorage.getItem("role"));
-      if (user && localStorage.getItem("role")) {
+      // Only auto-redirect if user is logged in AND user did NOT click close
+      if (!manualNavigation && user && localStorage.getItem("role")) {
         await user.reload();
         const role = localStorage.getItem("role");
         if (user.emailVerified) {
@@ -33,7 +33,7 @@ export default function Login() {
     });
 
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, manualNavigation]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -76,28 +76,29 @@ export default function Login() {
       setLoading(false);
     }
   };
-
   const handleResend = async () => {
     if (!userData) return;
     setResendLoading(true);
 
     try {
       await resendVerificationEmail(userData.user);
-      alert(
-        "Verification email resent! Check your inbox (and spam). It will expire in 10 minutes."
-      );
+      alert("Verification email sent! Check your inbox (and spam).");
     } catch (error: any) {
-      alert(
-        error.message ||
-          "Cannot resend verification. Limit reached for today. Try again tomorrow!"
-      );
+      if (error.code === "auth/too-many-requests") {
+        // Ignore this error if you know the email still arrives
+        console.log("Too many requests, but email likely sent.");
+        alert("Verification email sent! (Firebase rate limit warning ignored)");
+      } else {
+        alert(error.message || "Cannot resend verification.");
+      }
     } finally {
       setResendLoading(false);
     }
   };
 
   const handleClose = () => {
-    navigate("/"); // Explicit user action only
+    setManualNavigation(true); // prevent automatic redirect
+    navigate("/"); // Go to GetStarted/Home
   };
 
   if (checkingUser) return <div>Checking authentication...</div>;

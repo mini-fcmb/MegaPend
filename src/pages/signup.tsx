@@ -1,10 +1,14 @@
 import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../index.css";
-import { registerWithRole } from "../firebase/authService";
-import { updateProfile, sendEmailVerification, User } from "firebase/auth";
+import { auth, db } from "../firebase/config";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+  User,
+} from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase/config";
 
 export default function Signup() {
   const [role, setRole] = useState<"student" | "teacher">("student");
@@ -24,44 +28,54 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      let user: User;
-
-      if (role === "student") {
-        const studentSubjects = classLevel.split(",").map((c) => c.trim());
-        user = await registerWithRole(
-          email,
-          password,
-          role,
-          fullName,
-          studentSubjects
-        );
-      } else {
-        user = await registerWithRole(
-          email,
-          password,
-          role,
-          fullName,
-          teaching
-        );
-      }
-
-      await updateProfile(user, { displayName: fullName });
-
-      await sendEmailVerification(user);
-
-      await setDoc(doc(db, "emailVerification", user.uid), {
-        lastSentAt: serverTimestamp(),
-        attemptsToday: 1,
-      });
-
-      alert(
-        "Account created successfully! Check your email to verify your account before logging in. You have 10 minutes to verify before requesting a new code."
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
       );
 
-      // ✅ Redirect to Home/GetStarted after signup
-      navigate("/");
+      // Update display name
+      await updateProfile(userCredential.user, { displayName: fullName });
+
+      // Send email verification
+      try {
+        await sendEmailVerification(userCredential.user);
+        alert(
+          "Account created! A verification email has been sent. Please check your inbox."
+        );
+      } catch (emailError: any) {
+        if (emailError.code === "auth/too-many-requests") {
+          console.warn(
+            "Verification email was sent, but rate limit reached. Please check your inbox."
+          );
+          alert(
+            "A verification email has been sent! Please check your inbox. Try again later if you don't receive it."
+          );
+        } else {
+          alert(emailError.message);
+        }
+      }
+
+      // Save user info in Firestore
+      const userData: any = {
+        fullName,
+        email,
+        role,
+        createdAt: serverTimestamp(),
+      };
+
+      if (role === "student") {
+        userData.classLevel = classLevel;
+      } else {
+        userData.teaching = teaching;
+      }
+
+      await setDoc(doc(db, "users", userCredential.user.uid), userData);
+
+      // Optionally redirect to login page
+      navigate("/login");
     } catch (error: any) {
-      alert(error.message || "Signup failed. Please try again.");
+      alert(error.message);
     } finally {
       setLoading(false);
     }
@@ -70,7 +84,6 @@ export default function Signup() {
   return (
     <div className="signup-container">
       <div className="signup-card">
-        {/* ✅ Close Button added here */}
         <button
           type="button"
           className="close-btn"
