@@ -1,30 +1,34 @@
-import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { auth } from "../firebase/config";
-import { onAuthStateChanged } from "firebase/auth";
+import { useState, useEffect } from "react";
+import { onUserStateChanged } from "../firebase/authService";
 
-interface Props {
+interface ProtectedRouteProps {
   children: JSX.Element;
+  role: "teacher" | "student";
 }
 
-const ProtectedRoute: React.FC<Props> = ({ children }) => {
+export default function ProtectedRoute({
+  children,
+  role,
+}: ProtectedRouteProps) {
+  const [userChecked, setUserChecked] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+    const unsubscribe = onUserStateChanged((u) => {
+      setUser(u);
+      setUserChecked(true);
     });
     return () => unsubscribe();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (!userChecked) return <div>Checking authentication...</div>;
 
-  // 🚀 Not logged in → redirect to Home page instead of Login
-  if (!user) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+
+  // Ensure user has correct role
+  const storedRole = localStorage.getItem("role");
+  if (storedRole !== role) return <Navigate to="/login" replace />;
 
   return children;
-};
-
-export default ProtectedRoute;
+}

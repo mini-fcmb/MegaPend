@@ -14,24 +14,22 @@ export default function Login() {
   const [resendLoading, setResendLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [checkingUser, setCheckingUser] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onUserStateChanged(async (user) => {
-      if (user) {
+      console.log("Firebase user:", user);
+      console.log("Role in localStorage:", localStorage.getItem("role"));
+      if (user && localStorage.getItem("role")) {
         await user.reload();
-
+        const role = localStorage.getItem("role");
         if (user.emailVerified) {
-          const role = localStorage.getItem("role");
-          if (role === "student") {
-            navigate("/student-dashboard");
-          } else if (role === "teacher") {
-            navigate("/teacher-dashboard");
-          }
-        } else {
-          alert("Please verify your email before accessing your dashboard.");
+          if (role === "student") navigate("/student-dashboard");
+          else if (role === "teacher") navigate("/teacher-dashboard");
         }
       }
+      setCheckingUser(false);
     });
 
     return () => unsubscribe();
@@ -98,14 +96,14 @@ export default function Login() {
     }
   };
 
-  // ✅ New close handler
   const handleClose = () => {
-    navigate("/"); // Redirects to Home/GetStarted
+    navigate("/"); // Explicit user action only
   };
+
+  if (checkingUser) return <div>Checking authentication...</div>;
 
   return (
     <div className="login-page">
-      {/* ✅ Close Button */}
       <button className="close-btn" onClick={handleClose}>
         ✕
       </button>
