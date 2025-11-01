@@ -424,7 +424,7 @@ header {
 }
 
 .dark .cta-section {
-  background-color: #1e40af;
+  background-color:rgb(126, 201, 13) ;
 }
 
 @media (max-width: 768px) {
