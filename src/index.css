@@ -672,3 +672,18 @@ html {
   border: 1px solid whitesmoke;
   margin-bottom: 10px;
 }
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  color: var(--text, #333);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+  color: #ff4d4d;
+}

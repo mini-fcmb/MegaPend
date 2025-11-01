@@ -5,6 +5,9 @@ import {
   signOut,
   updateProfile,
   sendEmailVerification,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
   User,
 } from "firebase/auth";
 import {
@@ -22,6 +25,9 @@ interface VerificationData {
   lastSent: Timestamp;
   attemptsToday: number;
 }
+
+// ✅ Automatically persist login session even after refresh
+setPersistence(auth, browserLocalPersistence);
 
 export const registerWithRole = async (
   email: string,
@@ -52,7 +58,6 @@ export const registerWithRole = async (
 
   return user;
 };
-
 
 export const resendVerificationEmail = async (user: User) => {
   const userRef = doc(db, "users", user.uid);
@@ -90,7 +95,6 @@ export const resendVerificationEmail = async (user: User) => {
   });
 };
 
-
 export const loginWithRole = async (email: string, password: string) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
@@ -115,4 +119,10 @@ export const loginWithRole = async (email: string, password: string) => {
 };
 
 export const logout = async () => await signOut(auth);
+
 export const getCurrentUser = (): User | null => auth.currentUser;
+
+// ✅ Listen for auth changes globally (useful for dashboards)
+export const onUserStateChanged = (callback: (user: User | null) => void) => {
+  return onAuthStateChanged(auth, callback);
+};

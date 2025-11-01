@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { motion, Variants } from "framer-motion";
 import "../../index.css";
+import ProtectedRoute from "../protectedroute";
 
 const fadeIn = (
   direction: "up" | "down" | "left" | "right" = "up",
@@ -90,9 +91,11 @@ const MainContent: React.FC = () => {
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg transition">
             <Link to="/login"> Get Started</Link>
           </button>
-          <button className="border border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white px-6 py-3 rounded-2xl font-semibold transition">
-            Explore Courses
-          </button>
+          <ProtectedRoute>
+            <button className="border border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white px-6 py-3 rounded-2xl font-semibold transition">
+              Explore Courses
+            </button>
+          </ProtectedRoute>
         </motion.div>
       </section>
 

@@ -267,3 +267,28 @@
     transform: translateY(0);
   }
 }
+.close-sidebar {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: var(--text);
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .close-sidebar {
+    display: block;
+  }
+
+  .sidebar-toggle {
+    display: block;
+  }
+}
+
+@media (min-width: 769px) {
+  .sidebar-toggle {
+    display: none;
+  }
+}

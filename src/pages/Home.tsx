@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import NavBar from "../components/getstarted/NavBar";
 import MainContent from "../components/getstarted/maincontent";
+import "../index.css";
 
-const Home: React.FC = () => {
-  const [theme, setTheme] = useState<"light" | "dark">(
-    (localStorage.getItem("theme") as "light" | "dark") || "light"
-  );
+interface HomeProps {
+  theme: "light" | "dark";
+  setTheme: Dispatch<SetStateAction<"light" | "dark">>;
+}
 
+export default function Home({ theme, setTheme }: HomeProps) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
@@ -15,15 +17,9 @@ const Home: React.FC = () => {
   return (
     <>
       <NavBar theme={theme} setTheme={setTheme} />
-      <main
-        className={`min-h-screen flex flex-col items-center justify-center transition-colors duration-300 ${
-          theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-black"
-        }`}
-      >
+      <main className="main-content">
         <MainContent />
       </main>
     </>
   );
-};
-
-export default Home;
+}

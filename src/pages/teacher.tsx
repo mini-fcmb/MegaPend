@@ -1,11 +1,12 @@
 import { useState, FormEvent, useEffect } from "react";
 import { addContent } from "../firebase/contentService";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; // ✅ added useNavigate
 import { auth } from "../firebase/config";
 import "./teacher.css";
 
 export default function TeacherDashboard() {
   const location = useLocation();
+  const navigate = useNavigate(); // ✅ initialize navigation hook
   const teacherSubjects = location.state?.subjects || [];
 
   const [teacherName, setTeacherName] = useState("John Doe");
@@ -31,7 +32,6 @@ export default function TeacherDashboard() {
         setTeacherPhoto("");
       }
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -41,6 +41,15 @@ export default function TeacherDashboard() {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleAvatar = () => setAvatarOpen(!avatarOpen);
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      navigate("/getstarted");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -69,6 +78,9 @@ export default function TeacherDashboard() {
   return (
     <div className={`dashboard ${isDark ? "dark" : ""}`}>
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+        <button className="close-sidebar" onClick={toggleSidebar}>
+          ✕
+        </button>
         <ul>
           <li>Dashboard</li>
           <li>
@@ -104,14 +116,7 @@ export default function TeacherDashboard() {
                 <p>{teacherName}</p>
                 <button>Profile</button>
                 <button>Settings</button>
-                <button
-                  onClick={() => {
-                    auth.signOut();
-                    window.location.reload();
-                  }}
-                >
-                  Logout
-                </button>
+                <button onClick={handleLogout}>Logout</button> {/* ✅ fixed */}
               </div>
             )}
           </div>
@@ -185,12 +190,11 @@ export default function TeacherDashboard() {
                 quizzes.
               </li>
               <li>
-                Upload files to convert text (OCR can be integrated later).
+                Upload files to convert text later (OCR integration soon).
               </li>
               <li>Select the correct class and subject.</li>
               <li>
-                Content appears immediately for all students in that class &
-                subject.
+                Content appears immediately for all students in that class.
               </li>
             </ul>
           </div>

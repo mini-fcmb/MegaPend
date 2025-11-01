@@ -58,7 +58,8 @@ export default function Signup() {
         "Account created successfully! Check your email to verify your account before logging in. You have 10 minutes to verify before requesting a new code."
       );
 
-      navigate("/login");
+      // ✅ Redirect to Home/GetStarted after signup
+      navigate("/");
     } catch (error: any) {
       alert(error.message || "Signup failed. Please try again.");
     } finally {
@@ -69,6 +70,25 @@ export default function Signup() {
   return (
     <div className="signup-container">
       <div className="signup-card">
+        {/* ✅ Close Button added here */}
+        <button
+          type="button"
+          className="close-btn"
+          onClick={() => navigate("/")}
+          style={{
+            position: "absolute",
+            top: "15px",
+            right: "15px",
+            background: "transparent",
+            border: "none",
+            fontSize: "22px",
+            cursor: "pointer",
+            color: "#555",
+          }}
+        >
+          ✕
+        </button>
+
         <h2 className="signup-title">Create Account ✨</h2>
 
         <div className="role-toggle">

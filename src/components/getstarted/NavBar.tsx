@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import "boxicons/css/boxicons.min.css";
 import "./styles/theme.css";
 import logo from "../../assets/MegaPend Logo Design.png";
@@ -14,18 +14,36 @@ function NavBar({ theme, setTheme }: NavBarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // ✅ Load saved theme from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (savedTheme && setTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle("dark", savedTheme === "dark");
+    }
+  }, [setTheme]);
+
+  // ✅ Update document class + persist theme whenever it changes
+  useEffect(() => {
+    if (!theme) return;
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
   const toggleSidePanel = () => setIsOpen(!isOpen);
 
   const toggleTheme = () => {
     if (!theme || !setTheme) return;
-    setTheme(theme === "dark" ? "light" : "dark");
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
   };
 
   const showThemeButton = theme && setTheme;
 
   const handleHomeClick = (e: React.MouseEvent) => {
     e.preventDefault();
-
     if (location.pathname === "/") {
       window.location.reload();
     } else {
@@ -46,7 +64,6 @@ function NavBar({ theme, setTheme }: NavBarProps) {
         <nav className="nav-desktop">
           <ul>
             <li>
-              {" "}
               <a
                 href="#hero"
                 onClick={handleHomeClick}
@@ -56,7 +73,6 @@ function NavBar({ theme, setTheme }: NavBarProps) {
               </a>
             </li>
             <li>
-              {" "}
               <a href="#features" className="hover:text-blue-600">
                 Features
               </a>
@@ -103,20 +119,18 @@ function NavBar({ theme, setTheme }: NavBarProps) {
             >
               Home
             </a>
-          </li>{" "}
+          </li>
           <li>
             <a href="#features" className="hover:text-blue-600">
               Features
             </a>
           </li>
           <li>
-            {" "}
             <a href="#testimonials" className="hover:text-blue-600">
               Testimonials
             </a>
           </li>
           <li>
-            {" "}
             <a href="#cta" className="hover:text-blue-600">
               Join Us
             </a>

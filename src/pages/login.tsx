@@ -1,9 +1,10 @@
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../index.css";
 import {
   loginWithRole,
   resendVerificationEmail,
+  onUserStateChanged,
 } from "../firebase/authService";
 
 export default function Login() {
@@ -12,8 +13,29 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [userData, setUserData] = useState<any>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onUserStateChanged(async (user) => {
+      if (user) {
+        await user.reload();
+
+        if (user.emailVerified) {
+          const role = localStorage.getItem("role");
+          if (role === "student") {
+            navigate("/student-dashboard");
+          } else if (role === "teacher") {
+            navigate("/teacher-dashboard");
+          }
+        } else {
+          alert("Please verify your email before accessing your dashboard.");
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -27,11 +49,13 @@ export default function Login() {
 
       if (!user.emailVerified) {
         alert("Your email is not verified. Please check your inbox.");
-        setUser({ user, role, studentSubjects, teaching });
+        setUserData({ user, role, studentSubjects, teaching });
         setShowResend(true);
         setLoading(false);
         return;
       }
+
+      localStorage.setItem("role", role);
 
       alert(`Welcome back, ${user.displayName || "User"}!`);
 
@@ -56,25 +80,36 @@ export default function Login() {
   };
 
   const handleResend = async () => {
-    if (!user) return;
+    if (!userData) return;
     setResendLoading(true);
 
     try {
-      await resendVerificationEmail(user.user);
+      await resendVerificationEmail(userData.user);
       alert(
-        "Verification email resent! Check your inbox. It will expire in 10 minutes."
+        "Verification email resent! Check your inbox (and spam). It will expire in 10 minutes."
       );
     } catch (error: any) {
       alert(
-        error.message || "Cannot resend verification. Limit reached for today."
+        error.message ||
+          "Cannot resend verification. Limit reached for today. Try again tomorrow!"
       );
     } finally {
       setResendLoading(false);
     }
   };
 
+  // ✅ New close handler
+  const handleClose = () => {
+    navigate("/"); // Redirects to Home/GetStarted
+  };
+
   return (
     <div className="login-page">
+      {/* ✅ Close Button */}
+      <button className="close-btn" onClick={handleClose}>
+        ✕
+      </button>
+
       <div className="login-card">
         <h2>Welcome Back 👋</h2>
 
