@@ -127,7 +127,9 @@ header {
   text-decoration: none;
   font-weight: 500;
   color: var(--text-color);
+ 
 }
+
 
 .close-btn {
   font-size: 1.5rem;
@@ -666,7 +668,7 @@ html {
 }
 .asbtn{
   background-color: var(--shadow-color-lg);
-  color: var(--cta);
+  color: #fff;
   border-radius: 10px;
   width: 100px;
   border: 1px solid whitesmoke;
