@@ -1,12 +1,12 @@
 // src/components/Chatbot.tsx
 import React, { useState, useEffect, useRef } from "react";
-import "./Chatbot.css"; // We'll create separate CSS for styling
+import "./Chatbot.css"; // Make sure to create or update this CSS
 
 interface ChatMessage {
   id: string;
   text: string;
   sender: "bot" | "user";
-  timestamp: string;
+  timestamp?: string;
 }
 
 interface ChatbotProps {
@@ -29,13 +29,13 @@ const Chatbot: React.FC<ChatbotProps> = ({ theme }) => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const sendMessage = () => {
     if (!input.trim()) return;
+
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text: input,
@@ -45,14 +45,14 @@ const Chatbot: React.FC<ChatbotProps> = ({ theme }) => {
         minute: "2-digit",
       }),
     };
+
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    // Simulate bot typing animation and response
     const typingId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
-      { id: typingId, text: "Typing...", sender: "bot", timestamp: "" },
+      { id: typingId, text: "Typing...", sender: "bot" },
     ]);
 
     setTimeout(() => {
@@ -61,7 +61,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ theme }) => {
           msg.id === typingId
             ? {
                 ...msg,
-                text: `Echoing: ${userMessage.text}`, // Replace this with your AI API call
+                text: `Echo: ${userMessage.text}`,
                 timestamp: new Date().toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -78,9 +78,9 @@ const Chatbot: React.FC<ChatbotProps> = ({ theme }) => {
   };
 
   return (
-    <div className={`chatbot-container ${theme}`}>
+    <div className={`chatbot-page ${theme}`}>
       {/* Sidebar */}
-      <div
+      <aside
         className={`chatbot-sidebar ${sidebarVisible ? "visible" : "hidden"}`}
       >
         <div className="chatbot-logo">
@@ -90,28 +90,35 @@ const Chatbot: React.FC<ChatbotProps> = ({ theme }) => {
             <p>v1.0</p>
           </div>
         </div>
-        <div className="chatbot-nav">
+
+        <nav className="chatbot-nav">
           <div className="nav-item active">Home</div>
           <div className="nav-item">Topics</div>
           <div className="nav-item">Library</div>
           <div className="nav-item">History</div>
-        </div>
+        </nav>
+
         <div className="chatbot-prompts">
           <p>Ask a math question.</p>
           <p>Explain a concept.</p>
           <p>Give an example problem.</p>
           <p>Check my answer.</p>
         </div>
-      </div>
+      </aside>
 
-      {/* Chat Area */}
-      <div className="chatbot-main">
-        <div className="chatbot-header">
+      {/* Main chat area */}
+      <main className="chatbot-main">
+        <header className="chatbot-header">
           <div className="title">EduFlow AI</div>
-          <button onClick={() => setSidebarVisible((prev) => !prev)}>☰</button>
-        </div>
+          <button
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarVisible((prev) => !prev)}
+          >
+            ☰
+          </button>
+        </header>
 
-        <div className="chatbot-messages">
+        <section className="chatbot-messages">
           {messages.map((msg) => (
             <div key={msg.id} className={`message ${msg.sender}-message`}>
               {msg.text}
@@ -120,10 +127,10 @@ const Chatbot: React.FC<ChatbotProps> = ({ theme }) => {
               )}
             </div>
           ))}
-          <div ref={messagesEndRef}></div>
-        </div>
+          <div ref={messagesEndRef} />
+        </section>
 
-        <div className="chatbot-input-area">
+        <footer className="chatbot-input-area">
           <input
             type="text"
             placeholder="Type your question..."
@@ -131,9 +138,11 @@ const Chatbot: React.FC<ChatbotProps> = ({ theme }) => {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
           />
-          <button onClick={sendMessage}>➤</button>
-        </div>
-      </div>
+          <button className="send-btn" onClick={sendMessage}>
+            ➤
+          </button>
+        </footer>
+      </main>
     </div>
   );
 };

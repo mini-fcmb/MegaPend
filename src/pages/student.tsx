@@ -15,10 +15,8 @@ export default function StudentDashboard() {
 
   const studentSubjects: string[] = state?.studentSubjects || [];
 
-  const [studentName, setStudentName] = useState<string>(
-    state?.fullName || "Student Name"
-  );
-  const [studentEmail, setStudentEmail] = useState<string>(
+  const [studentName] = useState<string>(state?.fullName || "Student Name");
+  const [studentEmail] = useState<string>(
     state?.email || "student@example.com"
   );
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -39,21 +37,29 @@ export default function StudentDashboard() {
 
   return (
     <div className={`dashboard ${isDark ? "dark" : ""}`}>
+      {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <button className="close-sidebar" onClick={toggleSidebar}>
           ✕
         </button>
         <ul>
-          <li>Dashboard</li>
+          <li onClick={() => navigate("/student-dashboard")}>Dashboard</li>
           <li>Subjects</li>
           <li>Assignments</li>
           <li>Notes</li>
           <li>Quizzes</li>
           <li>Messages</li>
+          <li
+            onClick={() => navigate("/student-dashboard/chatbot")}
+            style={{ cursor: "pointer" }}
+          >
+            💬 Chatbot
+          </li>
           <li onClick={handleLogout}>Logout</li>
         </ul>
       </aside>
 
+      {/* Main content */}
       <div className="main">
         <div className="top-bar">
           <button className="sidebar-toggle" onClick={toggleSidebar}>
@@ -88,7 +94,7 @@ export default function StudentDashboard() {
             <h2>Your Subjects</h2>
             {studentSubjects.length ? (
               <ul>
-                {studentSubjects.map((subject: string, index: number) => (
+                {studentSubjects.map((subject, index) => (
                   <li key={index}>{subject}</li>
                 ))}
               </ul>
@@ -107,7 +113,7 @@ export default function StudentDashboard() {
             </ul>
           </div>
 
-          {[...Array(4)].map((_, index: number) => (
+          {[...Array(4)].map((_, index) => (
             <div key={index} className="card empty">
               +
             </div>

@@ -6,6 +6,7 @@ import Login from "./pages/login";
 import Signup from "./pages/signup";
 import TeacherDashboard from "./pages/teacher";
 import StudentDashboard from "./pages/student";
+import ChatbotPage from "./pages/chatbot"; // Page wrapper for the chatbot
 import ProtectedRoute from "./components/protectedroute";
 
 function App() {
@@ -36,11 +37,22 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/student-dashboard"
         element={
           <ProtectedRoute>
             <StudentDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Chatbot page route */}
+      <Route
+        path="/student-dashboard/chatbot"
+        element={
+          <ProtectedRoute>
+            <ChatbotPage theme={theme} />
           </ProtectedRoute>
         }
       />
