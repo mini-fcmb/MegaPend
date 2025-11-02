@@ -1,10 +1,8 @@
-.dashboard {
-  display: flex;
-  min-height: 100vh;
-  font-family: "Poppins", sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
+/* ========== Global Reset ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 :root {
@@ -15,6 +13,7 @@
   --shadow: rgba(0, 0, 0, 0.1);
 }
 
+/* Dark Mode Variables */
 .dark {
   --bg: #0f172a;
   --text: #e2e8f0;
@@ -23,17 +22,29 @@
   --shadow: rgba(255, 255, 255, 0.05);
 }
 
+/* ========== Dashboard Layout ========== */
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+  font-family: "Poppins", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ========== Sidebar ========== */
 .sidebar {
-  width: 220px;
+  width: 240px;
   background: var(--card);
   box-shadow: 2px 0 8px var(--shadow);
   padding: 1.5rem 1rem;
+  flex-shrink: 0;
   transition: transform 0.3s ease-in-out;
+  z-index: 200;
 }
 
 .sidebar ul {
   list-style: none;
-  padding: 0;
 }
 
 .sidebar li {
@@ -59,32 +70,23 @@
   margin-left: 6px;
 }
 
-.sidebar .badge.blue {
-  background: #3b82f6;
+/* Sidebar Close Button (Mobile) */
+.close-sidebar {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: var(--text);
+  cursor: pointer;
+  margin-bottom: 1rem;
 }
 
-.sidebar.open {
-  transform: translateX(0);
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    transform: translateX(-100%);
-    z-index: 100;
-  }
-  .sidebar.open {
-    transform: translateX(0);
-  }
-}
-
+/* ========== Main Content ========== */
 .main {
   flex: 1;
   padding: 2rem;
-  position: relative;
+  margin-left: 240px; /* Space for sidebar */
+  transition: margin-left 0.3s ease;
 }
 
 .top-bar {
@@ -98,6 +100,7 @@
   margin-bottom: 1.5rem;
 }
 
+/* Sidebar Toggle */
 .sidebar-toggle {
   background: none;
   border: none;
@@ -106,6 +109,7 @@
   color: var(--text);
 }
 
+/* Avatar Section */
 .avatar-wrapper {
   position: relative;
   cursor: pointer;
@@ -130,6 +134,7 @@
   font-weight: bold;
 }
 
+/* Dropdown */
 .avatar-dropdown {
   position: absolute;
   right: 0;
@@ -159,6 +164,7 @@
   color: #fff;
 }
 
+/* ========== Dashboard Content ========== */
 .dashboard-title {
   font-size: 1.8rem;
   font-weight: 700;
@@ -185,12 +191,7 @@
   box-shadow: 0 6px 18px var(--shadow);
 }
 
-.form-card h2,
-.tips-card h2 {
-  color: var(--accent);
-  margin-bottom: 1rem;
-}
-
+/* Form */
 .content-form input,
 .content-form select,
 .content-form textarea {
@@ -211,11 +212,6 @@
   border-color: var(--accent);
 }
 
-.content-form textarea {
-  height: 120px;
-  resize: none;
-}
-
 .content-form button {
   width: 100%;
   background: var(--accent);
@@ -232,52 +228,25 @@
   background: #1e40af;
 }
 
-.tips-card ul {
-  list-style: disc;
-  margin-left: 1.2rem;
-  color: var(--text);
-}
-
-.tips-card li {
-  margin-bottom: 0.6rem;
-}
-
-.card.empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  color: var(--accent);
-  cursor: pointer;
-  border: 2px dashed var(--accent);
-  background: transparent;
-}
-
-.card.empty:hover {
-  background: rgba(37, 99, 235, 0.1);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.close-sidebar {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 1.6rem;
-  color: var(--text);
-  cursor: pointer;
-  margin-bottom: 1rem;
-}
-
+/* ========== Mobile Responsive ========== */
 @media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main {
+    margin-left: 0;
+    padding: 1.2rem;
+  }
+
   .close-sidebar {
     display: block;
   }
@@ -290,5 +259,17 @@
 @media (min-width: 769px) {
   .sidebar-toggle {
     display: none;
+  }
+}
+
+/* ========== Animations ========== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

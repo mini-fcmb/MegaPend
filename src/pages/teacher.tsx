@@ -1,12 +1,12 @@
 import { useState, FormEvent, useEffect } from "react";
 import { addContent } from "../firebase/contentService";
-import { useLocation, useNavigate } from "react-router-dom"; // ✅ added useNavigate
+import { useLocation, useNavigate } from "react-router-dom";
 import { auth } from "../firebase/config";
-import "./teacher.css";
+import "./teacher.css"; // ✅ contains your dashboard CSS
 
 export default function TeacherDashboard() {
   const location = useLocation();
-  const navigate = useNavigate(); // ✅ initialize navigation hook
+  const navigate = useNavigate();
   const teacherSubjects = location.state?.subjects || [];
 
   const [teacherName, setTeacherName] = useState("John Doe");
@@ -77,10 +77,12 @@ export default function TeacherDashboard() {
 
   return (
     <div className={`dashboard ${isDark ? "dark" : ""}`}>
+      {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <button className="close-sidebar" onClick={toggleSidebar}>
           ✕
         </button>
+        <h2 className="logo">Teacher Panel</h2>
         <ul>
           <li>Dashboard</li>
           <li>
@@ -96,11 +98,15 @@ export default function TeacherDashboard() {
         </ul>
       </aside>
 
+      {/* Main content */}
       <div className="main">
+        {/* Top bar */}
         <div className="top-bar">
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             ☰
           </button>
+
+          <h1 className="dashboard-title">Teacher Dashboard ✨</h1>
 
           <div className="avatar-wrapper" onClick={toggleAvatar}>
             {teacherPhoto ? (
@@ -116,15 +122,15 @@ export default function TeacherDashboard() {
                 <p>{teacherName}</p>
                 <button>Profile</button>
                 <button>Settings</button>
-                <button onClick={handleLogout}>Logout</button> {/* ✅ fixed */}
+                <button onClick={handleLogout}>Logout</button>
               </div>
             )}
           </div>
         </div>
 
-        <h1 className="dashboard-title animate-pulse">Teacher Dashboard ✨</h1>
-
+        {/* Content grid */}
         <div className="content-grid">
+          {/* Form card */}
           <div className="card form-card">
             <h2>Add New Content</h2>
             <form onSubmit={handleSubmit} className="content-form">
@@ -182,6 +188,7 @@ export default function TeacherDashboard() {
             </form>
           </div>
 
+          {/* Tips card */}
           <div className="card tips-card">
             <h2>Tips & Tricks</h2>
             <ul>
@@ -190,7 +197,8 @@ export default function TeacherDashboard() {
                 quizzes.
               </li>
               <li>
-                Upload files to convert text later (OCR integration soon).
+                Upload files to convert text later (OCR integration coming
+                soon).
               </li>
               <li>Select the correct class and subject.</li>
               <li>
@@ -199,6 +207,7 @@ export default function TeacherDashboard() {
             </ul>
           </div>
 
+          {/* Empty placeholder cards */}
           {[...Array(4)].map((_, i) => (
             <div key={i} className="card empty">
               +

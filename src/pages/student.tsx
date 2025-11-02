@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { auth } from "../firebase/config";
 import "./teacher.css";
 
 interface LocationState {
@@ -13,15 +14,20 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
   const state = location.state as LocationState | undefined;
 
-  const studentSubjects: string[] = state?.studentSubjects || [];
+  const [studentName, setStudentName] = useState("Student Name");
+  const [studentEmail, setStudentEmail] = useState("student@example.com");
+  const [studentSubjects, setStudentSubjects] = useState<string[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
-  const [studentName] = useState<string>(state?.fullName || "Student Name");
-  const [studentEmail] = useState<string>(
-    state?.email || "student@example.com"
-  );
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-  const [avatarOpen, setAvatarOpen] = useState<boolean>(false);
-  const [isDark, setIsDark] = useState<boolean>(false);
+  useEffect(() => {
+    if (state) {
+      setStudentName(state.fullName || "Student Name");
+      setStudentEmail(state.email || "student@example.com");
+      setStudentSubjects(state.studentSubjects || []);
+    }
+  }, [state]);
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));
@@ -30,9 +36,13 @@ export default function StudentDashboard() {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleAvatar = () => setAvatarOpen(!avatarOpen);
 
-  const handleLogout = () => {
-    localStorage.removeItem("role");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      navigate("/getstarted");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -42,13 +52,13 @@ export default function StudentDashboard() {
         <button className="close-sidebar" onClick={toggleSidebar}>
           ✕
         </button>
+        <h2 className="logo">Student Panel</h2>
         <ul>
           <li onClick={() => navigate("/student-dashboard")}>Dashboard</li>
-          <li>Subjects</li>
+          <li>My Subjects</li>
           <li>Assignments</li>
           <li>Notes</li>
           <li>Quizzes</li>
-          <li>Messages</li>
           <li
             onClick={() => navigate("/student-dashboard/chatbot")}
             style={{ cursor: "pointer" }}
@@ -61,10 +71,13 @@ export default function StudentDashboard() {
 
       {/* Main content */}
       <div className="main">
+        {/* Top bar */}
         <div className="top-bar">
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             ☰
           </button>
+
+          <h1 className="dashboard-title">Student Dashboard ✨</h1>
 
           <div className="avatar-wrapper" onClick={toggleAvatar}>
             <div className="avatar-placeholder">
@@ -75,46 +88,54 @@ export default function StudentDashboard() {
               <div className="avatar-dropdown">
                 <p>{studentName}</p>
                 <p>{studentEmail}</p>
+                <button>Profile</button>
+                <button>Settings</button>
                 <button onClick={handleLogout}>Logout</button>
               </div>
             )}
           </div>
         </div>
 
-        <h1 className="dashboard-title animate-pulse">Student Dashboard ✨</h1>
-
+        {/* Content grid */}
         <div className="content-grid">
-          <div className="card profile-card">
-            <h2>Profile</h2>
-            <p>Name: {studentName}</p>
-            <p>Email: {studentEmail}</p>
+          {/* Column 1 - Profile info */}
+          <div className="card form-card">
+            <h2>My Profile</h2>
+            <div className="content-form">
+              <p>
+                <strong>Name:</strong> {studentName}
+              </p>
+              <p>
+                <strong>Email:</strong> {studentEmail}
+              </p>
+
+              <h3 style={{ marginTop: "1rem" }}>My Subjects</h3>
+              {studentSubjects.length ? (
+                <ul style={{ marginTop: "0.5rem" }}>
+                  {studentSubjects.map((subject, index) => (
+                    <li key={index}>{subject}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No subjects assigned yet.</p>
+              )}
+            </div>
           </div>
 
-          <div className="card subjects-card">
-            <h2>Your Subjects</h2>
-            {studentSubjects.length ? (
-              <ul>
-                {studentSubjects.map((subject, index) => (
-                  <li key={index}>{subject}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>No subjects assigned yet.</p>
-            )}
-          </div>
-
+          {/* Column 2 - Tips */}
           <div className="card tips-card">
             <h2>Tips & Tricks</h2>
             <ul>
-              <li>Check your subjects regularly for new content.</li>
-              <li>Click on assignments to submit on time.</li>
-              <li>Use notes and quizzes to revise faster.</li>
-              <li>Contact your teachers if you have questions.</li>
+              <li>Check your dashboard regularly for updates.</li>
+              <li>Complete assignments before their due date.</li>
+              <li>Use notes and quizzes for revision.</li>
+              <li>Contact teachers if you have any questions.</li>
             </ul>
           </div>
 
-          {[...Array(4)].map((_, index) => (
-            <div key={index} className="card empty">
+          {/* Column 3 - Empty placeholders */}
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="card empty">
               +
             </div>
           ))}
