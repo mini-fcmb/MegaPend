@@ -224,3 +224,25 @@
 .send-btn i {
   font-size: 1.3rem;
 }
+.close-chat-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-chat-btn:hover {
+  background: #d32f2f;
+  transform: scale(1.05);
+}

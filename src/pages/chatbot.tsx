@@ -1,4 +1,5 @@
 import { useState, FormEvent, ChangeEvent } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ NEW
 import "./chatbot.css";
 
 interface Message {
@@ -25,6 +26,7 @@ export default function Chatbot() {
   const [showFileOptions, setShowFileOptions] = useState(false);
   const [logo, setLogo] = useState<string>("");
 
+  const navigate = useNavigate(); // ✅ NEW
   const activeChat = chats[activeChatIndex];
 
   const sendMessage = async (e: FormEvent<HTMLFormElement>) => {
@@ -105,6 +107,11 @@ export default function Chatbot() {
     setActiveChatIndex(chats.length);
   };
 
+  // ✅ NEW: Function to handle close
+  const handleClose = () => {
+    navigate("/student-dashboard");
+  };
+
   const fileOptions = [
     { type: "Photo", icon: "bx-image" },
     { type: "Video", icon: "bx-video" },
@@ -150,9 +157,15 @@ export default function Chatbot() {
             <i className="bx bx-folder menu-icon"></i>
             {sidebarOpen && <span className="menu-text">Projects</span>}
           </div>
+
+          {/* ✅ NEW Close Button */}
+          <div className="menu-item close-btn" onClick={handleClose}>
+            <i className="bx bx-x-circle menu-icon"></i>
+            {sidebarOpen && <span className="menu-text"></span>}
+          </div>
         </div>
 
-        {/* Chat History Container */}
+        {/* Chat History */}
         <div
           className="chat-history-section"
           style={{ marginTop: "auto", overflowY: "auto" }}

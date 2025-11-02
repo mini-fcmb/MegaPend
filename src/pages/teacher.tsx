@@ -22,6 +22,7 @@ export default function TeacherDashboard() {
   const [loading, setLoading] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
+  // ✅ Load teacher info
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
@@ -35,9 +36,30 @@ export default function TeacherDashboard() {
     return () => unsubscribe();
   }, []);
 
+  // ✅ Load saved theme from localStorage or system preference
   useEffect(() => {
-    setIsDark(document.documentElement.classList.contains("dark"));
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark =
+      savedTheme === "dark" ||
+      (!savedTheme &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+    if (prefersDark) {
+      document.documentElement.classList.add("dark");
+      setIsDark(true);
+    } else {
+      document.documentElement.classList.remove("dark");
+      setIsDark(false);
+    }
   }, []);
+
+  // ✅ Toggle and save theme
+  const toggleTheme = () => {
+    const newTheme = isDark ? "light" : "dark";
+    setIsDark(!isDark);
+    document.documentElement.classList.toggle("dark");
+    localStorage.setItem("theme", newTheme);
+  };
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleAvatar = () => setAvatarOpen(!avatarOpen);
@@ -120,6 +142,9 @@ export default function TeacherDashboard() {
             {avatarOpen && (
               <div className="avatar-dropdown">
                 <p>{teacherName}</p>
+                <button onClick={toggleTheme}>
+                  Switch to {isDark ? "Light" : "Dark"} Mode
+                </button>
                 <button>Profile</button>
                 <button>Settings</button>
                 <button onClick={handleLogout}>Logout</button>

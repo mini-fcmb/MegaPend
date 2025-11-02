@@ -21,6 +21,7 @@ export default function StudentDashboard() {
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
+  // ✅ Load student info
   useEffect(() => {
     if (state) {
       setStudentName(state.fullName || "Student Name");
@@ -29,9 +30,30 @@ export default function StudentDashboard() {
     }
   }, [state]);
 
+  // ✅ Load saved theme from localStorage on mount
   useEffect(() => {
-    setIsDark(document.documentElement.classList.contains("dark"));
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark =
+      savedTheme === "dark" ||
+      (!savedTheme &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+    if (prefersDark) {
+      document.documentElement.classList.add("dark");
+      setIsDark(true);
+    } else {
+      document.documentElement.classList.remove("dark");
+      setIsDark(false);
+    }
   }, []);
+
+  // ✅ Toggle and save theme
+  const toggleTheme = () => {
+    const newTheme = isDark ? "light" : "dark";
+    setIsDark(!isDark);
+    document.documentElement.classList.toggle("dark");
+    localStorage.setItem("theme", newTheme);
+  };
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleAvatar = () => setAvatarOpen(!avatarOpen);
@@ -88,8 +110,9 @@ export default function StudentDashboard() {
               <div className="avatar-dropdown">
                 <p>{studentName}</p>
                 <p>{studentEmail}</p>
-                <button>Profile</button>
-                <button>Settings</button>
+                <button onClick={toggleTheme}>
+                  Switch to {isDark ? "Light" : "Dark"} Mode
+                </button>
                 <button onClick={handleLogout}>Logout</button>
               </div>
             )}
