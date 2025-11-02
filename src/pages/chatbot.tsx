@@ -1,5 +1,5 @@
 import { useState, FormEvent, ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ NEW
+import { useNavigate } from "react-router-dom";
 import "./chatbot.css";
 
 interface Message {
@@ -26,7 +26,7 @@ export default function Chatbot() {
   const [showFileOptions, setShowFileOptions] = useState(false);
   const [logo, setLogo] = useState<string>("");
 
-  const navigate = useNavigate(); // ✅ NEW
+  const navigate = useNavigate();
   const activeChat = chats[activeChatIndex];
 
   const sendMessage = async (e: FormEvent<HTMLFormElement>) => {
@@ -39,6 +39,7 @@ export default function Chatbot() {
       updated[activeChatIndex].messages.push(newMessage);
       return updated;
     });
+
     const userMessage = input;
     setInput("");
 
@@ -100,14 +101,12 @@ export default function Chatbot() {
   };
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
   const startNewChat = () => {
     const topic = `Chat ${chats.length + 1}`;
     setChats([...chats, { topic, messages: [] }]);
     setActiveChatIndex(chats.length);
   };
 
-  // ✅ NEW: Function to handle close
   const handleClose = () => {
     navigate("/student-dashboard");
   };
@@ -121,10 +120,14 @@ export default function Chatbot() {
 
   return (
     <div className="chatbot-container">
+      {/* ✅ Close Button OUTSIDE the sidebar */}
+      <button className="close-chat-btn" onClick={handleClose}>
+        <i className="bx bx-x"></i>
+      </button>
+
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : "collapsed"}`}>
         <div className="logo-toggle-container">
-          {/* Logo on left (hidden when collapsed) */}
           {sidebarOpen && (
             <label className="logo-circle">
               {logo ? <img src={logo} alt="logo" /> : <span>Logo</span>}
@@ -135,8 +138,6 @@ export default function Chatbot() {
               />
             </label>
           )}
-
-          {/* Toggle button always on right */}
           <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
             <i className="bx bx-left-arrow-alt"></i>
           </button>
@@ -147,25 +148,16 @@ export default function Chatbot() {
             <i className="bx bx-plus menu-icon"></i>
             {sidebarOpen && <span className="menu-text">New Chat</span>}
           </div>
-
           <div className="menu-item">
             <i className="bx bx-book menu-icon"></i>
             {sidebarOpen && <span className="menu-text">Library</span>}
           </div>
-
           <div className="menu-item">
             <i className="bx bx-folder menu-icon"></i>
             {sidebarOpen && <span className="menu-text">Projects</span>}
           </div>
-
-          {/* ✅ NEW Close Button */}
-          <div className="menu-item close-btn" onClick={handleClose}>
-            <i className="bx bx-x-circle menu-icon"></i>
-            {sidebarOpen && <span className="menu-text"></span>}
-          </div>
         </div>
 
-        {/* Chat History */}
         <div
           className="chat-history-section"
           style={{ marginTop: "auto", overflowY: "auto" }}
@@ -207,8 +199,6 @@ export default function Chatbot() {
               value={input}
               onChange={handleChange}
             />
-
-            {/* File Upload */}
             <div className="upload-wrapper">
               <button
                 type="button"
@@ -235,7 +225,6 @@ export default function Chatbot() {
               )}
             </div>
 
-            {/* Send Button */}
             <button type="submit" className="send-btn">
               <i className="bx bx-up-arrow-alt"></i>
             </button>
