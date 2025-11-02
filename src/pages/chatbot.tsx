@@ -33,38 +33,54 @@ export default function Chatbot() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const newMessage: Message = { sender: "user", text: input };
+    const userMessage: Message = { sender: "user", text: input.trim() };
+
+    // Step 1: Add only the user message first
     setChats((prev) => {
       const updated = [...prev];
-      updated[activeChatIndex].messages.push(newMessage);
+      updated[activeChatIndex] = {
+        ...updated[activeChatIndex],
+        messages: [...updated[activeChatIndex].messages, userMessage],
+      };
       return updated;
     });
 
-    const userMessage = input;
+    const messageToSend = input.trim();
     setInput("");
 
     try {
       const response = await fetch("YOUR_API_ENDPOINT", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({ message: messageToSend }),
       });
+
       const data = await response.json();
+      const botMessage: Message = {
+        sender: "bot",
+        text: data.reply || "No response from server.",
+      };
+
+      // Step 2: Add only the bot reply after receiving it
       setChats((prev) => {
         const updated = [...prev];
-        updated[activeChatIndex].messages.push({
-          sender: "bot",
-          text: data.reply || "No response",
-        });
+        updated[activeChatIndex] = {
+          ...updated[activeChatIndex],
+          messages: [...updated[activeChatIndex].messages, botMessage],
+        };
         return updated;
       });
     } catch {
+      const errorMsg: Message = {
+        sender: "bot",
+        text: "Error: Could not reach API.",
+      };
       setChats((prev) => {
         const updated = [...prev];
-        updated[activeChatIndex].messages.push({
-          sender: "bot",
-          text: "Error: Could not reach API",
-        });
+        updated[activeChatIndex] = {
+          ...updated[activeChatIndex],
+          messages: [...updated[activeChatIndex].messages, errorMsg],
+        };
         return updated;
       });
     }
@@ -78,13 +94,17 @@ export default function Chatbot() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
+      const fileMessage: Message = {
+        sender: "user",
+        text: `Uploaded (${type}): ${file.name}`,
+        file: reader.result as string,
+      };
       setChats((prev) => {
         const updated = [...prev];
-        updated[activeChatIndex].messages.push({
-          sender: "user",
-          text: `Uploaded (${type}): ${file.name}`,
-          file: reader.result as string,
-        });
+        updated[activeChatIndex] = {
+          ...updated[activeChatIndex],
+          messages: [...updated[activeChatIndex].messages, fileMessage],
+        };
         return updated;
       });
     };
