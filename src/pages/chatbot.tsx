@@ -106,10 +106,7 @@ export default function Chatbot() {
     setChats([...chats, { topic, messages: [] }]);
     setActiveChatIndex(chats.length);
   };
-
-  const handleClose = () => {
-    navigate("/student-dashboard");
-  };
+  const handleClose = () => navigate("/student-dashboard");
 
   const fileOptions = [
     { type: "Photo", icon: "bx-image" },
@@ -120,7 +117,6 @@ export default function Chatbot() {
 
   return (
     <div className="chatbot-container">
-      {/* ✅ Close Button OUTSIDE the sidebar */}
       <button className="close-chat-btn" onClick={handleClose}>
         <i className="bx bx-x"></i>
       </button>
@@ -128,52 +124,64 @@ export default function Chatbot() {
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : "collapsed"}`}>
         <div className="logo-toggle-container">
-          {sidebarOpen && (
-            <label className="logo-circle">
-              {logo ? <img src={logo} alt="logo" /> : <span>Logo</span>}
-              <input
-                type="file"
-                onChange={handleLogoUpload}
-                style={{ display: "none" }}
-              />
-            </label>
-          )}
-          <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-            <i className="bx bx-left-arrow-alt"></i>
-          </button>
-        </div>
-
-        <div className="sidebar-menu">
-          <div className="menu-item" onClick={startNewChat}>
-            <i className="bx bx-plus menu-icon"></i>
-            {sidebarOpen && <span className="menu-text">New Chat</span>}
-          </div>
-          <div className="menu-item">
-            <i className="bx bx-book menu-icon"></i>
-            {sidebarOpen && <span className="menu-text">Library</span>}
-          </div>
-          <div className="menu-item">
-            <i className="bx bx-folder menu-icon"></i>
-            {sidebarOpen && <span className="menu-text">Projects</span>}
-          </div>
-        </div>
-
-        <div
-          className="chat-history-section"
-          style={{ marginTop: "auto", overflowY: "auto" }}
-        >
-          {sidebarOpen && <h3 className="chat-history-title">Chat History</h3>}
-          {chats.map((chat, i) => (
-            <div
-              key={i}
-              className={`menu-item ${activeChatIndex === i ? "active" : ""}`}
-              onClick={() => setActiveChatIndex(i)}
+          {sidebarOpen ? (
+            <>
+              <label className="logo-circle">
+                {logo ? <img src={logo} alt="logo" /> : <span>Logo</span>}
+                <input
+                  type="file"
+                  onChange={handleLogoUpload}
+                  style={{ display: "none" }}
+                />
+              </label>
+              <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+                <i className="bx bx-left-arrow-alt"></i>
+              </button>
+            </>
+          ) : (
+            <button
+              className="sidebar-toggle-btn collapsed"
+              onClick={toggleSidebar}
             >
-              <i className="bx bx-chat menu-icon"></i>
-              {sidebarOpen && <span className="menu-text">{chat.topic}</span>}
-            </div>
-          ))}
+              <i className="bx bx-menu"></i>
+            </button>
+          )}
         </div>
+
+        {sidebarOpen && (
+          <>
+            <div className="sidebar-menu">
+              <div className="menu-item" onClick={startNewChat}>
+                <i className="bx bx-plus menu-icon"></i>
+                <span className="menu-text">New Chat</span>
+              </div>
+              <div className="menu-item">
+                <i className="bx bx-book menu-icon"></i>
+                <span className="menu-text">Library</span>
+              </div>
+              <div className="menu-item">
+                <i className="bx bx-folder menu-icon"></i>
+                <span className="menu-text">Projects</span>
+              </div>
+            </div>
+
+            <div className="chat-history-section">
+              <h3 className="chat-history-title">Chat History</h3>
+              {chats.map((chat, i) => (
+                <div
+                  key={i}
+                  className={`menu-item ${
+                    activeChatIndex === i ? "active" : ""
+                  }`}
+                  onClick={() => setActiveChatIndex(i)}
+                >
+                  <i className="bx bx-chat menu-icon"></i>
+                  <span className="menu-text">{chat.topic}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </aside>
 
       {/* Chat Area */}
@@ -189,7 +197,6 @@ export default function Chatbot() {
           ))}
         </div>
 
-        {/* Input */}
         <form className="input-area" onSubmit={sendMessage}>
           <div className="input-wrapper">
             <i className="bx bx-message-rounded input-icon"></i>
