@@ -70,17 +70,16 @@ export default function TeacherDashboard() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch students filtered by classLevel AND subject
+  // Fetch students filtered only by classLevel
   useEffect(() => {
-    if (!classLevel || !subject) return;
+    if (!classLevel) return;
 
     const fetchStudents = async () => {
       try {
         const studentsRef = collection(db, "students");
         const q = query(
           studentsRef,
-          where("classLevel", "==", classLevel),
-          where("subjects", "array-contains", subject)
+          where("classLevel", "==", classLevel) // filter by classLevel only
         );
 
         const snapshot = await getDocs(q);
@@ -93,7 +92,7 @@ export default function TeacherDashboard() {
     };
 
     fetchStudents();
-  }, [classLevel, subject]);
+  }, [classLevel]);
 
   // Load theme
   useEffect(() => {
@@ -287,6 +286,36 @@ export default function TeacherDashboard() {
             </div>
           )}
 
+          {activeSection === "students" && (
+            <div className="card">
+              <h2>Student List - {classLevel || "Loading..."}</h2>
+              {studentsList.length === 0 ? (
+                <p>No students found for this class.</p>
+              ) : (
+                <table className="student-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Full Name</th>
+                      <th>Email</th>
+                      <th>UID</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {studentsList.map((student, index) => (
+                      <tr key={student.id}>
+                        <td>{index + 1}</td>
+                        <td>{student.fullName}</td>
+                        <td>{student.email}</td>
+                        <td>{student.uid}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
           {(activeSection === "note" ||
             activeSection === "assignment" ||
             activeSection === "quiz") && (
@@ -310,7 +339,7 @@ export default function TeacherDashboard() {
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                 >
-                  {teacherSubjects.map((subj: string) => (
+                  {teacherSubjects.map((subj) => (
                     <option key={subj} value={subj}>
                       {subj}
                     </option>
@@ -349,38 +378,6 @@ export default function TeacherDashboard() {
                   {loading ? "Submitting..." : "Submit"}
                 </button>
               </form>
-            </div>
-          )}
-
-          {activeSection === "students" && (
-            <div className="card">
-              <h2>
-                Student List - {classLevel || "Loading..."} | Subject: {subject}
-              </h2>
-              {studentsList.length === 0 ? (
-                <p>No students found for this class and subject.</p>
-              ) : (
-                <table className="student-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Full Name</th>
-                      <th>Email</th>
-                      <th>UID</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {studentsList.map((student, index) => (
-                      <tr key={student.id}>
-                        <td>{index + 1}</td>
-                        <td>{student.fullName}</td>
-                        <td>{student.email}</td>
-                        <td>{student.uid}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
             </div>
           )}
 
