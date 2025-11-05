@@ -1,13 +1,28 @@
-import { useState, FormEvent, useEffect } from "react";
+// src/pages/teacher.tsx
+import { useState, FormEvent, useEffect, ChangeEvent } from "react";
 import { addContent } from "../firebase/contentService";
 import { useLocation, useNavigate } from "react-router-dom";
-import { auth } from "../firebase/config";
-import "./teacher.css"; // ✅ contains your dashboard CSS
+import { auth, db, storage } from "../firebase/config";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import Tesseract from "tesseract.js";
+import { PDFDocument } from "pdf-lib";
+import FileIcon from "../components/fileIcon";
+import "./teacher.css";
 
 export default function TeacherDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
   const teacherSubjects = location.state?.subjects || [];
+  const [activeSection, setActiveSection] = useState<
+    | "dashboard"
+    | "students"
+    | "note"
+    | "assignment"
+    | "quiz"
+    | "announcement"
+    | "chat"
+  >("dashboard");
 
   const [teacherName, setTeacherName] = useState("John Doe");
   const [teacherPhoto, setTeacherPhoto] = useState("");
@@ -21,8 +36,10 @@ export default function TeacherDashboard() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [textResult, setTextResult] = useState<string | null>(null);
 
-  // ✅ Load teacher info
+  // Load teacher info
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
@@ -36,7 +53,7 @@ export default function TeacherDashboard() {
     return () => unsubscribe();
   }, []);
 
-  // ✅ Load saved theme from localStorage or system preference
+  // Load saved theme
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     const prefersDark =
@@ -53,7 +70,6 @@ export default function TeacherDashboard() {
     }
   }, []);
 
-  // ✅ Toggle and save theme
   const toggleTheme = () => {
     const newTheme = isDark ? "light" : "dark";
     setIsDark(!isDark);
@@ -97,39 +113,135 @@ export default function TeacherDashboard() {
     setLoading(false);
   };
 
+  // ✅ File Upload Handler
+  const handleFileUpload = async () => {
+    if (!file) return;
+    setLoading(true);
+
+    const storageRef = ref(storage, `teacher_notes/${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (err) => {
+        console.error(err);
+        setLoading(false);
+      },
+      async () => {
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        await addDoc(collection(db, "teacher_notes"), {
+          name: file.name,
+          url,
+          type: file.type,
+          uploadedAt: serverTimestamp(),
+        });
+        alert("File uploaded successfully!");
+        setFile(null);
+        setUploadProgress(0);
+        setLoading(false);
+      }
+    );
+  };
+
+  // ✅ Scan Image & Extract Text
+  const handleScanImage = async (e: ChangeEvent<HTMLInputElement>) => {
+    const imageFile = e.target.files?.[0];
+    if (!imageFile) return;
+    setLoading(true);
+
+    try {
+      const { data } = await Tesseract.recognize(imageFile, "eng");
+      setTextResult(data.text);
+
+      // Convert to PDF
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([595, 842]);
+      const { width, height } = page.getSize();
+      page.drawText(data.text || "No text found", {
+        x: 50,
+        y: height - 100,
+        size: 12,
+      });
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const pdfRef = ref(storage, `teacher_notes/scanned_${Date.now()}.pdf`);
+      await uploadBytesResumable(pdfRef, blob);
+
+      alert("Scanned text converted to PDF and uploaded!");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={`dashboard ${isDark ? "dark" : ""}`}>
       {/* Sidebar */}
+
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <button className="close-sidebar" onClick={toggleSidebar}>
           ✕
         </button>
-        <h2 className="logo">Teacher Panel</h2>
+        <h2 className="logo">{sidebarOpen ? "Teacher Panel" : ""}</h2>
         <ul>
-          <li>Dashboard</li>
-          <li>
-            Kanban <span className="badge">Pro</span>
+          <li
+            className={activeSection === "dashboard" ? "active" : ""}
+            onClick={() => setActiveSection("dashboard")}
+          >
+            🏠 Dashboard
           </li>
-          <li>
-            Inbox <span className="badge blue">3</span>
+          <li
+            className={activeSection === "students" ? "active" : ""}
+            onClick={() => setActiveSection("students")}
+          >
+            👩‍🎓 Student List
           </li>
-          <li>Users</li>
-          <li>Products</li>
-          <li>Sign In</li>
-          <li>Sign Up</li>
+          <li
+            className={activeSection === "note" ? "active" : ""}
+            onClick={() => setActiveSection("note")}
+          >
+            📚 Upload Notes
+          </li>
+          <li
+            className={activeSection === "assignment" ? "active" : ""}
+            onClick={() => setActiveSection("assignment")}
+          >
+            📤 Upload Assignment
+          </li>
+          <li
+            className={activeSection === "quiz" ? "active" : ""}
+            onClick={() => setActiveSection("quiz")}
+          >
+            📝 Upload Quiz
+          </li>
+          <li
+            className={activeSection === "announcement" ? "active" : ""}
+            onClick={() => setActiveSection("announcement")}
+          >
+            📢 Announcements
+          </li>
+          <li
+            className={activeSection === "chat" ? "active" : ""}
+            onClick={() => setActiveSection("chat")}
+          >
+            💬 Chat
+          </li>
         </ul>
       </aside>
 
       {/* Main content */}
       <div className="main">
-        {/* Top bar */}
         <div className="top-bar">
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             ☰
           </button>
-
           <h1 className="dashboard-title">Teacher Dashboard ✨</h1>
-
           <div className="avatar-wrapper" onClick={toggleAvatar}>
             {teacherPhoto ? (
               <img src={teacherPhoto} alt="Profile" className="avatar" />
@@ -138,7 +250,6 @@ export default function TeacherDashboard() {
                 {teacherName.charAt(0).toUpperCase()}
               </div>
             )}
-
             {avatarOpen && (
               <div className="avatar-dropdown">
                 <p>{teacherName}</p>
@@ -155,89 +266,41 @@ export default function TeacherDashboard() {
 
         {/* Content grid */}
         <div className="content-grid">
-          {/* Form card */}
-          <div className="card form-card">
-            <h2>Add New Content</h2>
-            <form onSubmit={handleSubmit} className="content-form">
-              <input
-                type="text"
-                placeholder="Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-
-              <div className="form-row">
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as any)}
-                >
-                  <option value="note">Note</option>
-                  <option value="assignment">Assignment</option>
-                  <option value="quiz">Quiz</option>
-                </select>
-
-                <select
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                >
-                  {teacherSubjects.map((s: string) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-
-                <input
-                  type="text"
-                  placeholder="Class Level"
-                  value={classLevel}
-                  onChange={(e) => setClassLevel(e.target.value)}
-                />
-              </div>
-
-              <textarea
-                placeholder="Type your content, questions, or instructions..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-
-              <input
-                type="file"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-              />
-
-              <button type="submit" disabled={loading}>
-                {loading ? "Uploading..." : "Upload Content"}
-              </button>
-            </form>
-          </div>
-
-          {/* Tips card */}
-          <div className="card tips-card">
-            <h2>Tips & Tricks</h2>
-            <ul>
-              <li>
-                Type or paste content directly for notes, assignments, or
-                quizzes.
-              </li>
-              <li>
-                Upload files to convert text later (OCR integration coming
-                soon).
-              </li>
-              <li>Select the correct class and subject.</li>
-              <li>
-                Content appears immediately for all students in that class.
-              </li>
-            </ul>
-          </div>
-
-          {/* Empty placeholder cards */}
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="card empty">
-              +
+          {activeSection === "dashboard" && (
+            <div className="card tips-card">
+              <h2>Welcome, {teacherName}!</h2>
+              <p>Select a section from the sidebar to get started.</p>
             </div>
-          ))}
+          )}
+
+          {(activeSection === "note" ||
+            activeSection === "assignment" ||
+            activeSection === "quiz") && (
+            <div className="card form-card">
+              {/* Your existing form here */}
+            </div>
+          )}
+
+          {activeSection === "students" && (
+            <div className="card">
+              <h2>Student List</h2>
+              <p>Student info will appear here.</p>
+            </div>
+          )}
+
+          {activeSection === "announcement" && (
+            <div className="card">
+              <h2>Announcements</h2>
+              <p>Post updates for your students here.</p>
+            </div>
+          )}
+
+          {activeSection === "chat" && (
+            <div className="card">
+              <h2>Chat</h2>
+              <p>Teacher-student messaging goes here.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
