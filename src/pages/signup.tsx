@@ -6,7 +6,6 @@ import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
   updateProfile,
-  User,
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
@@ -15,7 +14,7 @@ export default function Signup() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [classLevel, setClassLevel] = useState("SS1");
+  const [classInput, setClassInput] = useState("SS1"); // for student
   const [teaching, setTeaching] = useState<
     { subject: string; classLevel: string }[]
   >([]);
@@ -25,6 +24,11 @@ export default function Signup() {
 
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
+    if (!fullName || !email || !password) {
+      alert("Please fill all fields");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -33,31 +37,18 @@ export default function Signup() {
         email,
         password
       );
+      const user = userCredential.user;
 
       // Update display name
-      await updateProfile(userCredential.user, { displayName: fullName });
+      await updateProfile(user, { displayName: fullName });
 
-      // Send email verification
-      try {
-        await sendEmailVerification(userCredential.user);
-        alert(
-          "Account created! A verification email has been sent. Please check your inbox."
-        );
-      } catch (emailError: any) {
-        if (emailError.code === "auth/too-many-requests") {
-          console.warn(
-            "Verification email was sent, but rate limit reached. Please check your inbox."
-          );
-          alert(
-            "A verification email has been sent! Please check your inbox. Try again later if you don't receive it."
-          );
-        } else {
-          alert(emailError.message);
-        }
-      }
+      // Send verification email
+      await sendEmailVerification(user);
+      alert("Account created! Verification email sent. Check your inbox/spam.");
 
-      // Save user info in Firestore
+      // Prepare user data
       const userData: any = {
+        uid: user.uid,
         fullName,
         email,
         role,
@@ -65,17 +56,40 @@ export default function Signup() {
       };
 
       if (role === "student") {
-        userData.classLevel = classLevel;
-      } else {
-        userData.teaching = teaching;
+        // Split and trim classes: "SS1, SS2, JSS3" → ["SS1", "SS2", "JSS3"]
+        const classLevels = classInput
+          .split(",")
+          .map((c) => c.trim())
+          .filter((c) => c);
+        userData.classLevels = classLevels;
+      } else if (role === "teacher") {
+        // Validate teaching subjects
+        if (
+          teaching.length === 0 ||
+          teaching.some((t) => !t.subject || !t.classLevel)
+        ) {
+          alert("Please add at least one valid subject and class");
+          setLoading(false);
+          return;
+        }
+        userData.teaching = teaching.map((t) => ({
+          subject: t.subject.trim(),
+          classLevel: t.classLevel.trim(),
+        }));
       }
 
-      await setDoc(doc(db, "users", userCredential.user.uid), userData);
+      // Save to Firestore
+      await setDoc(doc(db, "users", user.uid), userData);
 
-      // Optionally redirect to login page
-      navigate("/login");
+      // SUCCESS: Redirect based on role
+      if (role === "teacher") {
+        navigate("/teacher-dashboard");
+      } else {
+        navigate("/student-dashboard");
+      }
     } catch (error: any) {
-      alert(error.message);
+      console.error("Signup error:", error);
+      alert(error.message || "Failed to create account");
     } finally {
       setLoading(false);
     }
@@ -99,23 +113,29 @@ export default function Signup() {
             color: "#555",
           }}
         >
-          ✕
+          X
         </button>
 
-        <h2 className="signup-title">Create Account ✨</h2>
+        <h2 className="signup-title">Create Account</h2>
 
         <div className="role-toggle">
           <button
             type="button"
             className={role === "student" ? "active" : ""}
-            onClick={() => setRole("student")}
+            onClick={() => {
+              setRole("student");
+              setTeaching([]);
+            }}
           >
             Student
           </button>
           <button
             type="button"
             className={role === "teacher" ? "active" : ""}
-            onClick={() => setRole("teacher")}
+            onClick={() => {
+              setRole("teacher");
+              setClassInput("");
+            }}
           >
             Teacher
           </button>
@@ -148,27 +168,33 @@ export default function Signup() {
             <label>Password</label>
             <input
               type="password"
-              placeholder="Create a password"
+              placeholder="Create a strong password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={6}
             />
           </div>
 
           {role === "student" ? (
             <div>
-              <label>Class / Level (comma separated if multiple)</label>
+              <label>
+                Your Class(es){" "}
+                <span style={{ fontSize: "12px", color: "#666" }}>
+                  (comma separated)
+                </span>
+              </label>
               <input
                 type="text"
-                placeholder="e.g., SS2, SS3"
-                value={classLevel}
-                onChange={(e) => setClassLevel(e.target.value)}
+                placeholder="e.g. SS1, SS2, JSS3"
+                value={classInput}
+                onChange={(e) => setClassInput(e.target.value)}
                 required
               />
             </div>
           ) : (
             <div>
-              <label>Subjects & Classes</label>
+              <label>Subjects You Teach</label>
               <button
                 type="button"
                 className="asbtn"
@@ -176,39 +202,58 @@ export default function Signup() {
                   setTeaching([...teaching, { subject: "", classLevel: "" }])
                 }
               >
-                Add Subject
+                + Add Subject
               </button>
               {teaching.map((t, i) => (
-                <div key={i} style={{ marginTop: "5px" }}>
+                <div
+                  key={i}
+                  style={{ marginTop: "10px", display: "flex", gap: "8px" }}
+                >
                   <input
                     type="text"
-                    placeholder="Subject"
+                    placeholder="Subject (e.g Math)"
                     value={t.subject}
                     onChange={(e) => {
-                      const newTeaching = [...teaching];
-                      newTeaching[i].subject = e.target.value;
-                      setTeaching(newTeaching);
+                      const newT = [...teaching];
+                      newT[i].subject = e.target.value;
+                      setTeaching(newT);
                     }}
                     required
                   />
                   <input
                     type="text"
-                    placeholder="Class"
+                    placeholder="Class (e.g SS1)"
                     value={t.classLevel}
                     onChange={(e) => {
-                      const newTeaching = [...teaching];
-                      newTeaching[i].classLevel = e.target.value;
-                      setTeaching(newTeaching);
+                      const newT = [...teaching];
+                      newT[i].classLevel = e.target.value;
+                      setTeaching(newT);
                     }}
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setTeaching(teaching.filter((_, idx) => idx !== i))
+                    }
+                    style={{ color: "red" }}
+                  >
+                    Remove
+                  </button>
                 </div>
               ))}
+              {teaching.length === 0 && (
+                <p
+                  style={{ color: "#666", fontSize: "14px", marginTop: "5px" }}
+                >
+                  Click "Add Subject" to get started
+                </p>
+              )}
             </div>
           )}
 
           <button type="submit" className="signup-btn" disabled={loading}>
-            {loading ? "Creating Account..." : `Sign Up as ${role}`}
+            {loading ? "Creating..." : `Sign Up as ${role}`}
           </button>
         </form>
 
