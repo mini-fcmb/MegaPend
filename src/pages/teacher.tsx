@@ -398,26 +398,58 @@ export default function TeacherDashboard() {
           <nav className="firebase-nav">
             <div className="firebase-nav-group">
               <div className="firebase-nav-title">Teacher Menu</div>
-              <div className="firebase-nav-item active">
+
+              {/* Map top tabs to sidebar items */}
+              <div
+                className={`firebase-nav-item ${
+                  activeTab === "Dashboard" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("Dashboard")}
+              >
                 <i className="bx bx-home"></i>
                 <span>Dashboard</span>
               </div>
-              <div className="firebase-nav-item">
+
+              <div
+                className={`firebase-nav-item ${
+                  activeTab === "Announcement" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("Announcement")}
+              >
                 <i className="bx bx-bullhorn"></i>
                 <span>Announcements</span>
               </div>
-              <div className="firebase-nav-item">
+
+              <div
+                className={`firebase-nav-item ${
+                  activeTab === "Student List" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("Student List")}
+              >
                 <i className="bx bx-user"></i>
                 <span>Students</span>
               </div>
-              <div className="firebase-nav-item">
+
+              <div
+                className={`firebase-nav-item ${
+                  activeTab === "Upload Content" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("Upload Content")}
+              >
                 <i className="bx bx-cloud-upload"></i>
                 <span>Upload</span>
               </div>
-              <div className="firebase-nav-item">
+
+              <div
+                className={`firebase-nav-item ${
+                  activeTab === "Message" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("Message")}
+              >
                 <i className="bx bx-message"></i>
                 <span>Messages</span>
               </div>
+
               <div className="firebase-nav-item" onClick={handleLogout}>
                 <i className="bx bx-log-out"></i>
                 <span>Logout</span>
