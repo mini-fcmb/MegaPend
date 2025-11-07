@@ -6,6 +6,8 @@ import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
   updateProfile,
+  sendSignInLinkToEmail, // ← CUCUMA ADD THIS ONE
+  getAuth,
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
@@ -21,6 +23,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const auth = getAuth(); // ← CUCUMA ADD THIS
 
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
@@ -56,14 +59,12 @@ export default function Signup() {
       };
 
       if (role === "student") {
-        // Split and trim classes: "SS1, SS2, JSS3" → ["SS1", "SS2", "JSS3"]
         const classLevels = classInput
           .split(",")
           .map((c) => c.trim())
           .filter((c) => c);
         userData.classLevels = classLevels;
       } else if (role === "teacher") {
-        // Validate teaching subjects
         if (
           teaching.length === 0 ||
           teaching.some((t) => !t.subject || !t.classLevel)
@@ -80,6 +81,19 @@ export default function Signup() {
 
       // Save to Firestore
       await setDoc(doc(db, "users", user.uid), userData);
+
+      // CUCUMA MAGIC LINK ADDED HERE – NO PASSWORD NEXT TIME!!!
+      const actionCodeSettings = {
+        url: "https://megapend-auth.web.app/login", // CHANGE TO YOUR REAL URL LATER
+        handleCodeInApp: true,
+      };
+
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      window.localStorage.setItem("emailForSignIn", email);
+
+      alert(
+        "Account created + MAGIC LINK SENT! Check your email to login without password next time! NO MORE PASSWORD STRESS!!!"
+      );
 
       // SUCCESS: Redirect based on role
       if (role === "teacher") {

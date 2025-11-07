@@ -6,6 +6,11 @@ import {
   resendVerificationEmail,
   onUserStateChanged,
 } from "../firebase/authService";
+import {
+  getAuth,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
+} from "firebase/auth"; // CUCUMA ADD THIS LINE
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,12 +20,53 @@ export default function Login() {
   const [showResend, setShowResend] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [checkingUser, setCheckingUser] = useState(true);
-  const [manualNavigation, setManualNavigation] = useState(false); // ✅ prevent override
+  const [manualNavigation, setManualNavigation] = useState(false);
   const navigate = useNavigate();
+
+  const auth = getAuth(); // CUCUMA ADD THIS
+
+  // CUCUMA MAGIC LINK DETECTION – USER CLICK EMAIL → LOGIN DIRECT!!!
+  useEffect(() => {
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+      let savedEmail = window.localStorage.getItem("emailForSignIn");
+      if (!savedEmail) {
+        savedEmail = window.prompt(
+          "Please confirm your email to complete login:"
+        );
+      }
+      if (!savedEmail) {
+        alert("Email is required to complete login.");
+        return;
+      }
+
+      signInWithEmailLink(auth, savedEmail, window.location.href)
+        .then((result) => {
+          window.localStorage.removeItem("emailForSignIn");
+          alert(
+            `Magic login successful! Welcome back, ${
+              result.user.displayName || "Boss"
+            }!`
+          );
+
+          // Auto redirect based on role
+          const role = localStorage.getItem("role") || "student";
+          if (role === "teacher") {
+            navigate("/teacher-dashboard");
+          } else {
+            navigate("/student-dashboard");
+          }
+        })
+        .catch((error) => {
+          console.error("Magic link error:", error);
+          alert(
+            "Link expired or invalid. Please sign up again or use password."
+          );
+        });
+    }
+  }, [auth, navigate]);
 
   useEffect(() => {
     const unsubscribe = onUserStateChanged(async (user) => {
-      // Only auto-redirect if user is logged in AND user did NOT click close
       if (!manualNavigation && user && localStorage.getItem("role")) {
         await user.reload();
         const role = localStorage.getItem("role");
@@ -76,6 +122,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+
   const handleResend = async () => {
     if (!userData) return;
     setResendLoading(true);
@@ -85,7 +132,6 @@ export default function Login() {
       alert("Verification email sent! Check your inbox (and spam).");
     } catch (error: any) {
       if (error.code === "auth/too-many-requests") {
-        // Ignore this error if you know the email still arrives
         console.log("Too many requests, but email likely sent.");
         alert("Verification email sent! (Firebase rate limit warning ignored)");
       } else {
@@ -97,8 +143,8 @@ export default function Login() {
   };
 
   const handleClose = () => {
-    setManualNavigation(true); // prevent automatic redirect
-    navigate("/"); // Go to GetStarted/Home
+    setManualNavigation(true);
+    navigate("/");
   };
 
   if (checkingUser) return <div>Checking authentication...</div>;
@@ -106,11 +152,11 @@ export default function Login() {
   return (
     <div className="login-page">
       <button className="close-btn" onClick={handleClose}>
-        ✕
+        X
       </button>
 
       <div className="login-card">
-        <h2>Welcome Back 👋</h2>
+        <h2>Welcome Back</h2>
 
         <form onSubmit={handleLogin}>
           <div className="form-group">
