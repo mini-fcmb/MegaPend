@@ -475,7 +475,7 @@ export default function TeacherDashboard() {
               <small>Teachers Dashboard • {teacherName}</small>
             </div>
 
-            <button className="gemini-btn">
+            <button className="gemini-btn" onClick={() => navigate("/chatbot")}>
               <i className="bx bxs-star"></i>
               Ask MegaBot for help
             </button>

@@ -131,12 +131,12 @@ header {
 }
 
 
-.close-btn {
-  font-size: 1.5rem;
+/*.close-btn {
+  font-size: 20px;
   background: none;
   border: none;
   cursor: pointer;
-}
+}*/
 
 .overlay {
   position: fixed;

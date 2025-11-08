@@ -1,7 +1,8 @@
+// StudentDashboard.tsx
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { auth } from "../firebase/config";
-import "./teacher.css";
+import "./student.css";
 
 interface LocationState {
   fullName?: string;
@@ -17,11 +18,10 @@ export default function StudentDashboard() {
   const [studentName, setStudentName] = useState("Student Name");
   const [studentEmail, setStudentEmail] = useState("student@example.com");
   const [studentSubjects, setStudentSubjects] = useState<string[]>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [avatarOpen, setAvatarOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedTab, setSelectedTab] = useState("inbox");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // ✅ Load student info
   useEffect(() => {
     if (state) {
       setStudentName(state.fullName || "Student Name");
@@ -30,140 +30,134 @@ export default function StudentDashboard() {
     }
   }, [state]);
 
-  // ✅ Load saved theme from localStorage on mount
+  // Responsive sidebar
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDark =
-      savedTheme === "dark" ||
-      (!savedTheme &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
-
-    if (prefersDark) {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
-    } else {
-      document.documentElement.classList.remove("dark");
-      setIsDark(false);
-    }
+    const handleResize = () => {
+      setSidebarOpen(window.innerWidth > 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ✅ Toggle and save theme
-  const toggleTheme = () => {
-    const newTheme = isDark ? "light" : "dark";
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", newTheme);
-  };
-
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-  const toggleAvatar = () => setAvatarOpen(!avatarOpen);
-
   const handleLogout = async () => {
-    try {
-      await auth.signOut();
-      navigate("/getstarted");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    await auth.signOut();
+    navigate("/getstarted");
   };
+
+  const menuItems = [
+    { id: "inbox", label: "Notifications", icon: "✉️", count: 9 },
+    { id: "subjects", label: "My Subjects", icon: "📚" },
+    { id: "assignments", label: "Assignments", icon: "📋" },
+    { id: "notes", label: "Notes", icon: "📝" },
+    { id: "quizzes", label: "Quizzes", icon: "❓" },
+    { id: "chatbot", label: "Chatbot", icon: "💬", action: () => navigate("/student-dashboard/chatbot") },
+    { id: "logout", label: "Logout", icon: "🚪", action: handleLogout },
+  ];
+
+  const announcements = [
+    { id: 1, from: "Math Teacher", subject: "Homework Due Tomorrow", preview: "Don't forget to submit your algebra worksheet...", date: "Yesterday", starred: true },
+    { id: 2, from: "Proton Official", subject: "You only have three more days to upgrade...", preview: "Get more storage for free!", date: "Thursday", official: true },
+    { id: 3, from: "Science Dept", subject: "Lab Report Guidelines", preview: "Follow the new format for submissions", date: "Wednesday" },
+    { id: 4, from: "GitHub", subject: "[mini-tcmb/MegaPend] Possible valid secrets detected", preview: "Review your repository settings", date: "Oct 30", alert: true },
+  ];
 
   return (
-    <div className={`dashboard ${isDark ? "dark" : ""}`}>
+    <div className="megapend-student-dashboard">
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-        <button className="close-sidebar" onClick={toggleSidebar}>
-          ✕
-        </button>
-        <h2 className="logo">Student Panel</h2>
-        <ul>
-          <li onClick={() => navigate("/student-dashboard")}>Dashboard</li>
-          <li>My Subjects</li>
-          <li>Assignments</li>
-          <li>Notes</li>
-          <li>Quizzes</li>
-          <li
-            onClick={() => navigate("/student-dashboard/chatbot")}
-            style={{ cursor: "pointer" }}
-          >
-            💬 Chatbot
-          </li>
-          <li onClick={handleLogout}>Logout</li>
-        </ul>
+        <div className="sidebar-header">
+          <div className="logo">
+            <span className="logo-text">MegaPend</span>
+            <span className="role">Student Panel</span>
+          </div>
+        </div>
+
+        <nav className="sidebar-nav">
+          {menuItems.map(item => (
+            <div
+              key={item.id}
+              className={`nav-item ${selectedTab === item.id ? "active" : ""}`}
+              onClick={() => {
+                setSelectedTab(item.id);
+                item.action?.();
+                if (window.innerWidth <= 768) setSidebarOpen(false);
+              }}
+            >
+              <span className="icon">{item.icon}</span>
+              <span className="label">{item.label}</span>
+              {item.count && <span className="count">{item.count}</span>}
+            </div>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="user-profile">
+            <div className="avatar">{studentName.charAt(0).toUpperCase()}</div>
+            <div className="user-info">
+              <div className="name">{studentName}</div>
+              <div className="email">{studentEmail}</div>
+            </div>
+          </div>
+        </div>
       </aside>
 
-      {/* Main content */}
-      <div className="main">
-        {/* Top bar */}
-        <div className="top-bar">
-          <button className="sidebar-toggle" onClick={toggleSidebar}>
+      {/* Main Content - CENTERED */}
+      <div className="main-content">
+        {/* Top Bar */}
+        <header className="top-bar">
+          <button className="menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
             ☰
           </button>
 
-          <h1 className="dashboard-title">Student Dashboard ✨</h1>
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search messages, subjects, assignments..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
 
-          <div className="avatar-wrapper" onClick={toggleAvatar}>
-            <div className="avatar-placeholder">
-              {studentName.charAt(0).toUpperCase()}
-            </div>
+          <button className="new-message">+ New message</button>
+        </header>
 
-            {avatarOpen && (
-              <div className="avatar-dropdown">
-                <p>{studentName}</p>
-                <p>{studentEmail}</p>
-                <button onClick={toggleTheme}>
-                  Switch to {isDark ? "Light" : "Dark"} Mode
-                </button>
-                <button onClick={handleLogout}>Logout</button>
+        {/* Inbox Area */}
+        <div className="inbox-container">
+          <div className="inbox-header">
+            <h2>Inbox</h2>
+            <span className="count-total">{announcements.length} messages</span>
+          </div>
+
+          <div className="message-list">
+            {announcements.map(msg => (
+              <div key={msg.id} className={`message-row ${msg.starred ? "starred" : ""}`}>
+                <div className="checkbox"></div>
+                <div className="star">⭐</div>
+                <div className="sender">
+                  {msg.official && <span className="official-badge">M</span>}
+                  {msg.from}
+                </div>
+                <div className="subject-preview">
+                  <span className="subject">{msg.subject}</span>
+                  <span className="preview"> - {msg.preview}</span>
+                </div>
+                <div className="date">{msg.date}</div>
               </div>
-            )}
+            ))}
           </div>
         </div>
 
-        {/* Content grid */}
-        <div className="content-grid">
-          {/* Column 1 - Profile info */}
-          <div className="card form-card">
-            <h2>My Profile</h2>
-            <div className="content-form">
-              <p>
-                <strong>Name:</strong> {studentName}
-              </p>
-              <p>
-                <strong>Email:</strong> {studentEmail}
-              </p>
-
-              <h3 style={{ marginTop: "1rem" }}>My Subjects</h3>
-              {studentSubjects.length ? (
-                <ul style={{ marginTop: "0.5rem" }}>
-                  {studentSubjects.map((subject, index) => (
-                    <li key={index}>{subject}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No subjects assigned yet.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Column 2 - Tips */}
-          <div className="card tips-card">
-            <h2>Tips & Tricks</h2>
-            <ul>
-              <li>Check your dashboard regularly for updates.</li>
-              <li>Complete assignments before their due date.</li>
-              <li>Use notes and quizzes for revision.</li>
-              <li>Contact teachers if you have any questions.</li>
-            </ul>
-          </div>
-
-          {/* Column 3 - Empty placeholders */}
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="card empty">
-              +
-            </div>
-          ))}
+        {/* Bottom Bar */}
+        <div className="bottom-bar">
+          <span>MegaPend © 2025 • Secure & Private • Built for Students</span>
         </div>
       </div>
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && window.innerWidth <= 768 && (
+        <div className="overlay" onClick={() => setSidebarOpen(false)}></div>
+      )}
     </div>
   );
 }

@@ -1,263 +1,214 @@
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./chatbot.css";
 
-interface Message {
-  sender: "user" | "bot";
-  text: string;
-  file?: string;
-}
-
-interface ChatTopic {
-  topic: string;
-  messages: Message[];
-}
+interface Message { sender: "user" | "bot"; text: string; }
+interface ChatTopic { id: string; topic: string; messages: Message[]; }
 
 export default function Chatbot() {
   const [chats, setChats] = useState<ChatTopic[]>([
     {
-      topic: "Welcome Chat",
-      messages: [{ sender: "bot", text: "Hello! How can I help you today?" }],
+      id: "1",
+      topic: "Chatbot project discussion",
+      messages: [
+        { sender: "bot", text: "Hey Fred! How's it going? Want to continue with your chatbot project today or start something new?" },
+        { sender: "user", text: "hi" },
+      ],
     },
   ]);
-  const [activeChatIndex, setActiveChatIndex] = useState(0);
+  const [activeChatId, setActiveChatId] = useState("1");
   const [input, setInput] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [showFileOptions, setShowFileOptions] = useState(false);
-  const [logo, setLogo] = useState<string>("");
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-  const activeChat = chats[activeChatIndex];
 
-  const sendMessage = async (e: FormEvent<HTMLFormElement>) => {
+  const activeChat = chats.find(c => c.id === activeChatId) || chats[0];
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activeChat.messages]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+      if (e.key === "Escape") {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  // Swipe to open sidebar
+  useEffect(() => {
+    let touchStartX = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0].clientX;
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const touchEndX = e.changedTouches[0].clientX;
+      if (touchEndX - touchStartX > 100 && !sidebarOpen) {
+        setSidebarOpen(true);
+      }
+    };
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchend", handleTouchEnd);
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [sidebarOpen]);
+
+  // Responsive sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      setSidebarOpen(window.innerWidth > 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage: Message = { sender: "user", text: input.trim() };
-
-    // Step 1: Add only the user message first
-    setChats((prev) => {
-      const updated = [...prev];
-      updated[activeChatIndex] = {
-        ...updated[activeChatIndex],
-        messages: [...updated[activeChatIndex].messages, userMessage],
-      };
-      return updated;
-    });
-
-    const messageToSend = input.trim();
+    const userMsg = { sender: "user" as const, text: input.trim() };
+    setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: [...c.messages, userMsg] } : c));
     setInput("");
 
-    try {
-      const response = await fetch("YOUR_API_ENDPOINT", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageToSend }),
-      });
-
-      const data = await response.json();
-      const botMessage: Message = {
-        sender: "bot",
-        text: data.reply || "No response from server.",
-      };
-
-      // Step 2: Add only the bot reply after receiving it
-      setChats((prev) => {
-        const updated = [...prev];
-        updated[activeChatIndex] = {
-          ...updated[activeChatIndex],
-          messages: [...updated[activeChatIndex].messages, botMessage],
-        };
-        return updated;
-      });
-    } catch {
-      const errorMsg: Message = {
-        sender: "bot",
-        text: "Error: Could not reach API.",
-      };
-      setChats((prev) => {
-        const updated = [...prev];
-        updated[activeChatIndex] = {
-          ...updated[activeChatIndex],
-          messages: [...updated[activeChatIndex].messages, errorMsg],
-        };
-        return updated;
-      });
-    }
+    setTimeout(() => {
+      setChats(prev => prev.map(c => c.id === activeChatId ? {
+        ...c,
+        messages: [...c.messages, { sender: "bot", text: "I'm thinking..." }]
+      } : c));
+    }, 800);
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) =>
-    setInput(e.target.value);
-
-  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>, type: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const fileMessage: Message = {
-        sender: "user",
-        text: `Uploaded (${type}): ${file.name}`,
-        file: reader.result as string,
-      };
-      setChats((prev) => {
-        const updated = [...prev];
-        updated[activeChatIndex] = {
-          ...updated[activeChatIndex],
-          messages: [...updated[activeChatIndex].messages, fileMessage],
-        };
-        return updated;
-      });
-    };
-    reader.readAsDataURL(file);
-    setShowFileOptions(false);
-  };
-
-  const handleLogoUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setLogo(reader.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const startNewChat = () => {
-    const topic = `Chat ${chats.length + 1}`;
-    setChats([...chats, { topic, messages: [] }]);
-    setActiveChatIndex(chats.length);
+    const newChat = { id: Date.now().toString(), topic: "New Chat", messages: [] };
+    setChats([...chats, newChat]);
+    setActiveChatId(newChat.id);
+    if (window.innerWidth <= 768) setSidebarOpen(false);
   };
-  const handleClose = () => navigate("/student-dashboard");
-
-  const fileOptions = [
-    { type: "Photo", icon: "bx-image" },
-    { type: "Video", icon: "bx-video" },
-    { type: "Clips", icon: "bx-film" },
-    { type: "Document", icon: "bx-file" },
-  ];
 
   return (
-    <div className="chatbot-container">
-      <button className="close-chat-btn" onClick={handleClose}>
-        <i className="bx bx-x"></i>
-      </button>
+    <div className="chatgpt-clone">
+      {/* Swipe Area */}
+      <div className="sidebar-swipe-area" onClick={() => setSidebarOpen(true)} />
+
+      {/* Overlay */}
+      <div className={`sidebar-overlay ${sidebarOpen ? "open" : ""}`} onClick={() => setSidebarOpen(false)} />
 
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? "open" : "collapsed"}`}>
-        <div className="logo-toggle-container">
-          {sidebarOpen ? (
-            <>
-              <label className="logo-circle">
-                {logo ? <img src={logo} alt="logo" /> : <span>Logo</span>}
-                <input
-                  type="file"
-                  onChange={handleLogoUpload}
-                  style={{ display: "none" }}
-                />
-              </label>
-              <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-                <i className="bx bx-left-arrow-alt"></i>
-              </button>
-            </>
-          ) : (
-            <button
-              className="sidebar-toggle-btn collapsed"
-              onClick={toggleSidebar}
-            >
-              <i className="bx bx-menu"></i>
-            </button>
-          )}
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+        {/* ... same as before ... */}
+        <div className="sidebar-top">
+          <button className="new-chat-btn" onClick={startNewChat}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            New chat
+          </button>
         </div>
-
-        {sidebarOpen && (
-          <>
-            <div className="sidebar-menu">
-              <div className="menu-item" onClick={startNewChat}>
-                <i className="bx bx-plus menu-icon"></i>
-                <span className="menu-text">New Chat</span>
-              </div>
-              <div className="menu-item">
-                <i className="bx bx-book menu-icon"></i>
-                <span className="menu-text">Library</span>
-              </div>
-              <div className="menu-item">
-                <i className="bx bx-folder menu-icon"></i>
-                <span className="menu-text">Projects</span>
-              </div>
-            </div>
-
-            <div className="chat-history-section">
-              <h3 className="chat-history-title">Chat History</h3>
-              {chats.map((chat, i) => (
-                <div
-                  key={i}
-                  className={`menu-item ${
-                    activeChatIndex === i ? "active" : ""
-                  }`}
-                  onClick={() => setActiveChatIndex(i)}
-                >
-                  <i className="bx bx-chat menu-icon"></i>
-                  <span className="menu-text">{chat.topic}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </aside>
-
-      {/* Chat Area */}
-      <main className={`chat-area ${sidebarOpen ? "expanded" : "collapsed"}`}>
-        <div className="messages">
-          {activeChat.messages.map((msg, i) => (
-            <div key={i} className={`message ${msg.sender}`}>
-              {msg.text}
-              {msg.file && (
-                <img src={msg.file} alt="uploaded" className="uploaded-image" />
-              )}
+        <div className="chat-list">
+          {chats.map(chat => (
+            <div key={chat.id} className={`chat-item ${activeChatId === chat.id ? "active" : ""}`} onClick={() => {
+              setActiveChatId(chat.id);
+              if (window.innerWidth <= 768) setSidebarOpen(false);
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <span>{chat.topic}</span>
             </div>
           ))}
         </div>
-
-        <form className="input-area" onSubmit={sendMessage}>
-          <div className="input-wrapper">
-            <i className="bx bx-message-rounded input-icon"></i>
-            <input
-              type="text"
-              placeholder="Type a message..."
-              value={input}
-              onChange={handleChange}
-            />
-            <div className="upload-wrapper">
-              <button
-                type="button"
-                className="upload-btn"
-                onClick={() => setShowFileOptions(!showFileOptions)}
-              >
-                <i className="bx bx-paperclip"></i>
-              </button>
-
-              {showFileOptions && (
-                <div className="file-options top-left">
-                  {fileOptions.map((option) => (
-                    <label key={option.type}>
-                      <i className={`bx ${option.icon}`}></i>
-                      {option.type}
-                      <input
-                        type="file"
-                        style={{ display: "none" }}
-                        onChange={(e) => handleFileUpload(e, option.type)}
-                      />
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button type="submit" className="send-btn">
-              <i className="bx bx-up-arrow-alt"></i>
-            </button>
+        <div className="sidebar-bottom">
+          <button className="upgrade-btn">
+            <span>Upgrade to Go ∞</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </button>
+          <div className="user-menu">
+            <div className="user-avatar">F</div>
+            <span>Fred</span>
           </div>
-        </form>
-      </main>
+        </div>
+      </aside>
+
+      {/* Main Area */}
+      <div className="main-area">
+        <div className="chat-container">
+          <div className="messages">
+            {activeChat.messages.map((msg, i) => (
+              <div key={i} className={`message-wrapper ${msg.sender}`}>
+                {msg.sender === "bot" && (
+                  <div className="bot-avatar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 14c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>
+                    </svg>
+                  </div>
+                )}
+                <div className="message-bubble">
+                  <p>{msg.text}</p>
+                  {msg.sender === "bot" && i === activeChat.messages.length - 1 && (
+                    <div className="feedback">
+                      <span>Is this conversation helpful so far?</span>
+                      <button>Like</button>
+                      <button>Dislike</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <form className="input-area" onSubmit={sendMessage}>
+            <div className="input-wrapper">
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Ask anything"
+                value={input}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+              />
+              <button type="submit" disabled={!input.trim()}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                </svg>
+              </button>
+            </div>
+            <div className="input-footer">
+              <span>ChatGPT can make mistakes. Check important info.</span>
+              <div className="voice-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <path d="M12 19v4" />
+                </svg>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Mobile Menu Button */}
+      {!sidebarOpen && window.innerWidth <= 768 && (
+        <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

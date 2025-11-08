@@ -151,11 +151,10 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      <button className="close-btn" onClick={handleClose}>
-        X
-      </button>
-
       <div className="login-card">
+        <button className="close-btn" onClick={handleClose}>
+          X
+        </button>
         <h2>Welcome Back</h2>
 
         <form onSubmit={handleLogin}>

@@ -49,10 +49,10 @@ function App() {
 
       {/* Chatbot page route */}
       <Route
-        path="/student-dashboard/chatbot"
+        path="/chatbot"
         element={
           <ProtectedRoute>
-            <ChatbotPage theme={theme} />
+            <ChatbotPage />
           </ProtectedRoute>
         }
       />
