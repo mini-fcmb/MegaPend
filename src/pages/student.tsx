@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { auth } from "../firebase/config";
+import "boxicons/css/boxicons.min.css";
 import "./student.css";
 
 interface LocationState {
@@ -17,7 +18,6 @@ export default function StudentDashboard() {
 
   const [studentName, setStudentName] = useState("Student Name");
   const [studentEmail, setStudentEmail] = useState("student@example.com");
-  const [studentSubjects, setStudentSubjects] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedTab, setSelectedTab] = useState("inbox");
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,15 +26,11 @@ export default function StudentDashboard() {
     if (state) {
       setStudentName(state.fullName || "Student Name");
       setStudentEmail(state.email || "student@example.com");
-      setStudentSubjects(state.studentSubjects || []);
     }
   }, [state]);
 
-  // Responsive sidebar
   useEffect(() => {
-    const handleResize = () => {
-      setSidebarOpen(window.innerWidth > 768);
-    };
+    const handleResize = () => setSidebarOpen(window.innerWidth > 768);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -46,20 +42,52 @@ export default function StudentDashboard() {
   };
 
   const menuItems = [
-    { id: "inbox", label: "Notifications", icon: "✉️", count: 9 },
-    { id: "subjects", label: "My Subjects", icon: "📚" },
-    { id: "assignments", label: "Assignments", icon: "📋" },
-    { id: "notes", label: "Notes", icon: "📝" },
-    { id: "quizzes", label: "Quizzes", icon: "❓" },
-    { id: "chatbot", label: "Chatbot", icon: "💬", action: () => navigate("/student-dashboard/chatbot") },
-    { id: "logout", label: "Logout", icon: "🚪", action: handleLogout },
+    { id: "inbox", label: "Notifications", icon: "bx-envelope", count: 9 },
+    { id: "subjects", label: "My Subjects", icon: "bx-book" },
+    { id: "assignments", label: "Assignments", icon: "bx-clipboard" },
+    { id: "notes", label: "Notes", icon: "bx-notepad" },
+    { id: "quizzes", label: "Quizzes", icon: "bx-help-circle" },
+    {
+      id: "chatbot",
+      label: "Chatbot",
+      icon: "bx-bot",
+      action: () => navigate("/student-dashboard/chatbot"),
+    },
+    { id: "logout", label: "Logout", icon: "bx-log-out", action: handleLogout },
   ];
 
   const announcements = [
-    { id: 1, from: "Math Teacher", subject: "Homework Due Tomorrow", preview: "Don't forget to submit your algebra worksheet...", date: "Yesterday", starred: true },
-    { id: 2, from: "Proton Official", subject: "You only have three more days to upgrade...", preview: "Get more storage for free!", date: "Thursday", official: true },
-    { id: 3, from: "Science Dept", subject: "Lab Report Guidelines", preview: "Follow the new format for submissions", date: "Wednesday" },
-    { id: 4, from: "GitHub", subject: "[mini-tcmb/MegaPend] Possible valid secrets detected", preview: "Review your repository settings", date: "Oct 30", alert: true },
+    {
+      id: 1,
+      from: "Math Teacher",
+      subject: "Homework Due Tomorrow",
+      preview: "Don't forget to submit your algebra worksheet...",
+      date: "Yesterday",
+      starred: true,
+    },
+    {
+      id: 2,
+      from: "Proton Official",
+      subject: "You only have three more days to upgrade...",
+      preview: "Get more storage for free!",
+      date: "Thursday",
+      official: true,
+    },
+    {
+      id: 3,
+      from: "Science Dept",
+      subject: "Lab Report Guidelines",
+      preview: "Follow the new format for submissions",
+      date: "Wednesday",
+    },
+    {
+      id: 4,
+      from: "GitHub",
+      subject: "[mini-tcmb/MegaPend] Possible valid secrets detected",
+      preview: "Review your repository settings",
+      date: "Oct 30",
+      alert: true,
+    },
   ];
 
   return (
@@ -74,7 +102,7 @@ export default function StudentDashboard() {
         </div>
 
         <nav className="sidebar-nav">
-          {menuItems.map(item => (
+          {menuItems.map((item) => (
             <div
               key={item.id}
               className={`nav-item ${selectedTab === item.id ? "active" : ""}`}
@@ -84,7 +112,7 @@ export default function StudentDashboard() {
                 if (window.innerWidth <= 768) setSidebarOpen(false);
               }}
             >
-              <span className="icon">{item.icon}</span>
+              <i className={`bx ${item.icon} icon`}></i>
               <span className="label">{item.label}</span>
               {item.count && <span className="count">{item.count}</span>}
             </div>
@@ -102,15 +130,18 @@ export default function StudentDashboard() {
         </div>
       </aside>
 
-      {/* Main Content - CENTERED */}
+      {/* Main Content - PERFECTLY CENTERED */}
       <div className="main-content">
-        {/* Top Bar */}
         <header className="top-bar">
-          <button className="menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            ☰
+          <button
+            className="menu-toggle"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            <i className="bx bx-menu"></i>
           </button>
 
           <div className="search-bar">
+            <i className="bx bx-search search-icon"></i>
             <input
               type="text"
               placeholder="Search messages, subjects, assignments..."
@@ -119,10 +150,11 @@ export default function StudentDashboard() {
             />
           </div>
 
-          <button className="new-message">+ New message</button>
+          <button className="new-message">
+            <i className="bx bx-plus"></i> New message
+          </button>
         </header>
 
-        {/* Inbox Area */}
         <div className="inbox-container">
           <div className="inbox-header">
             <h2>Inbox</h2>
@@ -130,10 +162,17 @@ export default function StudentDashboard() {
           </div>
 
           <div className="message-list">
-            {announcements.map(msg => (
-              <div key={msg.id} className={`message-row ${msg.starred ? "starred" : ""}`}>
+            {announcements.map((msg) => (
+              <div
+                key={msg.id}
+                className={`message-row ${msg.starred ? "starred" : ""}`}
+              >
                 <div className="checkbox"></div>
-                <div className="star">⭐</div>
+                <div className="star">
+                  <i
+                    className={`bx ${msg.starred ? "bxs-star" : "bx-star"}`}
+                  ></i>
+                </div>
                 <div className="sender">
                   {msg.official && <span className="official-badge">M</span>}
                   {msg.from}
@@ -148,13 +187,11 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="bottom-bar">
           <span>MegaPend © 2025 • Secure & Private • Built for Students</span>
         </div>
       </div>
 
-      {/* Mobile Overlay */}
       {sidebarOpen && window.innerWidth <= 768 && (
         <div className="overlay" onClick={() => setSidebarOpen(false)}></div>
       )}

@@ -1,214 +1,265 @@
-import { useState, FormEvent, ChangeEvent, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import "./chatbot.css";
 
-interface Message { sender: "user" | "bot"; text: string; }
-interface ChatTopic { id: string; topic: string; messages: Message[]; }
+function App() {
+  const [showApiModal, setShowApiModal] = useState(false);
+  const [apiKey, setApiKey] = useState(
+    localStorage.getItem("grok_api_key") || ""
+  );
 
-export default function Chatbot() {
-  const [chats, setChats] = useState<ChatTopic[]>([
-    {
-      id: "1",
-      topic: "Chatbot project discussion",
-      messages: [
-        { sender: "bot", text: "Hey Fred! How's it going? Want to continue with your chatbot project today or start something new?" },
-        { sender: "user", text: "hi" },
-      ],
-    },
-  ]);
-  const [activeChatId, setActiveChatId] = useState("1");
-  const [input, setInput] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
-
-  const activeChat = chats.find(c => c.id === activeChatId) || chats[0];
-
-  // Auto-scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeChat.messages]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        inputRef.current?.focus();
-      }
-      if (e.key === "Escape") {
-        setSidebarOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, []);
-
-  // Swipe to open sidebar
-  useEffect(() => {
-    let touchStartX = 0;
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartX = e.touches[0].clientX;
-    };
-    const handleTouchEnd = (e: TouchEvent) => {
-      const touchEndX = e.changedTouches[0].clientX;
-      if (touchEndX - touchStartX > 100 && !sidebarOpen) {
-        setSidebarOpen(true);
-      }
-    };
-    window.addEventListener("touchstart", handleTouchStart);
-    window.addEventListener("touchend", handleTouchEnd);
-    return () => {
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [sidebarOpen]);
-
-  // Responsive sidebar
-  useEffect(() => {
-    const handleResize = () => {
-      setSidebarOpen(window.innerWidth > 768);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const sendMessage = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const userMsg = { sender: "user" as const, text: input.trim() };
-    setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: [...c.messages, userMsg] } : c));
-    setInput("");
-
-    setTimeout(() => {
-      setChats(prev => prev.map(c => c.id === activeChatId ? {
-        ...c,
-        messages: [...c.messages, { sender: "bot", text: "I'm thinking..." }]
-      } : c));
-    }, 800);
-  };
-
-  const startNewChat = () => {
-    const newChat = { id: Date.now().toString(), topic: "New Chat", messages: [] };
-    setChats([...chats, newChat]);
-    setActiveChatId(newChat.id);
-    if (window.innerWidth <= 768) setSidebarOpen(false);
+  const saveApiKey = () => {
+    localStorage.setItem("grok_api_key", apiKey);
+    setShowApiModal(false);
   };
 
   return (
-    <div className="chatgpt-clone">
-      {/* Swipe Area */}
-      <div className="sidebar-swipe-area" onClick={() => setSidebarOpen(true)} />
-
-      {/* Overlay */}
-      <div className={`sidebar-overlay ${sidebarOpen ? "open" : ""}`} onClick={() => setSidebarOpen(false)} />
-
-      {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-        {/* ... same as before ... */}
-        <div className="sidebar-top">
-          <button className="new-chat-btn" onClick={startNewChat}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <div className="app">
+      {/* SIDEBAR */}
+      <div className="sidebar">
+        <div className="sidebar-header">
+          <div className="new-chat">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M12 5v14M5 12h14" />
             </svg>
             New chat
-          </button>
-        </div>
-        <div className="chat-list">
-          {chats.map(chat => (
-            <div key={chat.id} className={`chat-item ${activeChatId === chat.id ? "active" : ""}`} onClick={() => {
-              setActiveChatId(chat.id);
-              if (window.innerWidth <= 768) setSidebarOpen(false);
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              <span>{chat.topic}</span>
-            </div>
-          ))}
-        </div>
-        <div className="sidebar-bottom">
-          <button className="upgrade-btn">
-            <span>Upgrade to Go ∞</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          </button>
-          <div className="user-menu">
-            <div className="user-avatar">F</div>
-            <span>Fred</span>
           </div>
         </div>
-      </aside>
 
-      {/* Main Area */}
-      <div className="main-area">
-        <div className="chat-container">
-          <div className="messages">
-            {activeChat.messages.map((msg, i) => (
-              <div key={i} className={`message-wrapper ${msg.sender}`}>
-                {msg.sender === "bot" && (
-                  <div className="bot-avatar">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 14c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>
-                    </svg>
-                  </div>
-                )}
-                <div className="message-bubble">
-                  <p>{msg.text}</p>
-                  {msg.sender === "bot" && i === activeChat.messages.length - 1 && (
-                    <div className="feedback">
-                      <span>Is this conversation helpful so far?</span>
-                      <button>Like</button>
-                      <button>Dislike</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Search Ctrl+K"
+            className="search-input"
+          />
+          <svg
+            className="search-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+        </div>
+
+        <div className="nav-items">
+          <div className="nav-item">Chat</div>
+          <div className="nav-item">Voice</div>
+          <div className="nav-item">Imagine</div>
+          <div className="nav-item">Projects</div>
+          <div className="nav-item">History</div>
+        </div>
+
+        <div className="history">
+          <div className="history-title">Today</div>
+          <div className="history-item active">
+            Building Teacher's Dashboard
           </div>
+          <div className="history-item">Chatbot UI Design Update</div>
 
-          <form className="input-area" onSubmit={sendMessage}>
-            <div className="input-wrapper">
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder="Ask anything"
-                value={input}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-              />
-              <button type="submit" disabled={!input.trim()}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-                </svg>
-              </button>
-            </div>
-            <div className="input-footer">
-              <span>ChatGPT can make mistakes. Check important info.</span>
-              <div className="voice-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  <path d="M12 19v4" />
-                </svg>
-              </div>
-            </div>
-          </form>
+          <div className="history-title">Yesterday</div>
+          <div className="history-item">Synchronize Navbar and Sidebar</div>
+          <div className="history-item">Casual coding chat, UI tweaks</div>
+          <div className="history-item">Teacher Dashboard Message</div>
         </div>
       </div>
 
-      {/* Mobile Menu Button */}
-      {!sidebarOpen && window.innerWidth <= 768 && (
-        <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+      {/* MAIN CONTENT */}
+      <div className="main">
+        {/* TOP TABS */}
+        <div className="top-bar">
+          <div className="tab-group">
+            <div className="tab active">
+              Building Teacher's Dashboard
+              <svg
+                className="tab-close"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </div>
+            <div className="tab">
+              Chatbot project discussion
+              <svg
+                className="tab-close"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </div>
+            <div className="tab">
+              MegaPend-Auth - Database
+              <svg
+                className="tab-close"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </div>
+            <div className="tab">
+              Vite + React + TS
+              <svg
+                className="tab-close"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* CHAT AREA */}
+        <div className="chat-area">
+          <div className="chat-content">
+            <div className="hero">
+              <h1>How can Grok help?</h1>
+            </div>
+
+            <div className="code-block">
+              <div className="code-header">
+                <div className="avatar">G</div>
+                <span>Student List</span>
+                <span style={{ color: "#666" }}>
+                  &amp;&amp; activeTab !== "Announcement" &amp;&amp; (
+                </span>
+              </div>
+              <div className="empty-box">
+                <div className="empty-text">
+                  <span style={{ color: "#fff" }}>empty</span> text-white
+                  text-center text-2xl
+                </div>
+                <p style={{ color: "#888", marginTop: "16px" }}>
+                  <span className="empty-hint">activeTab</span> coming soon!
+                </p>
+              </div>
+              <div style={{ marginTop: "20px", color: "#666" }}>
+                &nbsp;&nbsp;)
+              </div>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <button className="think-harder">Think Harder</button>
+            </div>
+          </div>
+        </div>
+
+        {/* INPUT AREA */}
+        <div className="input-area">
+          <div className="input-container">
+            <div className="input-bar">
+              <div className="icon-btn">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <input type="text" placeholder="How can Grok help?" />
+              <div className="icon-btn">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4m0-4h.01" />
+                </svg>
+              </div>
+              <div className="icon-btn send-btn">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                >
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="input-footer">
+              <div>
+                <span
+                  className="api-key-link"
+                  onClick={() => setShowApiModal(true)}
+                >
+                  Set API Key
+                </span>
+                <span style={{ marginLeft: "16px" }}>
+                  Photo/Video/File upload 100% WORKING
+                </span>
+              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+              >
+                <span>Auto</span>
+                <div className="toggle"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* API KEY MODAL */}
+      {showApiModal && (
+        <div className="modal-backdrop" onClick={() => setShowApiModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Enter Your API Key</h2>
+            <input
+              type="password"
+              placeholder="sk-XXXXXXXXXXXXXXXXXXXXXXXX"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+            />
+            <div className="modal-buttons">
+              <button
+                className="modal-btn cancel"
+                onClick={() => setShowApiModal(false)}
+              >
+                Cancel
+              </button>
+              <button className="modal-btn save" onClick={saveApiKey}>
+                Save Key
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 }
+
+export default App;

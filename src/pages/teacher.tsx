@@ -13,6 +13,9 @@ import {
   doc as firestoreDoc,
   getDoc,
   updateDoc,
+  addDoc,
+  orderBy,
+  serverTimestamp,
 } from "firebase/firestore";
 import {
   updateProfile,
@@ -30,6 +33,17 @@ interface Student {
   classDisplay: string;
 }
 
+interface Announcement {
+  id: string;
+  teacherId: string;
+  teacherName: string;
+  teacherPhotoURL: string | null;
+  content: string;
+  timestamp: any;
+  classLevels: string[];
+  pinned?: boolean;
+}
+
 export default function TeacherDashboard() {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -41,6 +55,11 @@ export default function TeacherDashboard() {
   const [studentsList, setStudentsList] = useState<Student[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
 
+  // Announcement States
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [newAnnouncement, setNewAnnouncement] = useState("");
+  const [posting, setPosting] = useState(false);
+
   // Profile Modal
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [editName, setEditName] = useState("");
@@ -50,6 +69,7 @@ export default function TeacherDashboard() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const studentListenerRef = useRef<(() => void) | null>(null);
+  const announcementListenerRef = useRef<(() => void) | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load teacher data
@@ -152,6 +172,46 @@ export default function TeacherDashboard() {
     };
   }, [teachingClasses]);
 
+  // Load Announcements
+  useEffect(() => {
+    if (teachingClasses.length === 0) {
+      setAnnouncements([]);
+      return;
+    }
+
+    if (announcementListenerRef.current) {
+      announcementListenerRef.current();
+    }
+
+    const q = query(
+      collection(db, "announcements"),
+      where("classLevels", "array-contains-any", teachingClasses),
+      orderBy("timestamp", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const loaded: Announcement[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        loaded.push({
+          id: doc.id,
+          ...data,
+          timestamp: data.timestamp?.toDate() || new Date(),
+        } as Announcement);
+      });
+      setAnnouncements(loaded);
+    });
+
+    announcementListenerRef.current = unsubscribe;
+
+    return () => {
+      if (announcementListenerRef.current) {
+        announcementListenerRef.current();
+        announcementListenerRef.current = null;
+      }
+    };
+  }, [teachingClasses]);
+
   const getInitials = (name: string) => {
     const names = name.trim().split(" ");
     if (names.length >= 2) {
@@ -223,8 +283,40 @@ export default function TeacherDashboard() {
 
   const handleLogout = () => {
     if (studentListenerRef.current) studentListenerRef.current();
+    if (announcementListenerRef.current) announcementListenerRef.current();
     auth.signOut();
     navigate("/getstarted");
+  };
+
+  // Post Announcement
+  const postAnnouncement = async () => {
+    if (
+      !newAnnouncement.trim() ||
+      !auth.currentUser ||
+      teachingClasses.length === 0
+    )
+      return;
+
+    setPosting(true);
+    try {
+      await addDoc(collection(db, "announcements"), {
+        teacherId: auth.currentUser.uid,
+        teacherName: teacherName,
+        teacherPhotoURL: teacherPhotoURL || null,
+        content: newAnnouncement.trim(),
+        classLevels: teachingClasses,
+        timestamp: serverTimestamp(),
+        pinned: false,
+      });
+
+      setNewAnnouncement("");
+      alert("Announcement posted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to post announcement");
+    } finally {
+      setPosting(false);
+    }
   };
 
   const tabs = [
@@ -238,7 +330,7 @@ export default function TeacherDashboard() {
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Mobile Overlay & Profile Modal */}
       {isMobileOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -246,12 +338,10 @@ export default function TeacherDashboard() {
         />
       )}
 
-      {/* Profile Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full">
             <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
-
             <div className="text-center mb-6">
               <div
                 className="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-5xl font-bold cursor-pointer hover:opacity-90 transition"
@@ -279,7 +369,6 @@ export default function TeacherDashboard() {
               </p>
               {uploadingPhoto && <p className="text-blue-500">Uploading...</p>}
             </div>
-
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -298,7 +387,6 @@ export default function TeacherDashboard() {
                   Update Name
                 </button>
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Email (cannot change)
@@ -310,7 +398,6 @@ export default function TeacherDashboard() {
                   className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg"
                 />
               </div>
-
               <div className="pt-4 border-t">
                 <h3 className="font-semibold mb-3">Change Password</h3>
                 <input
@@ -342,7 +429,6 @@ export default function TeacherDashboard() {
                 </button>
               </div>
             </div>
-
             <button
               onClick={() => setShowProfileModal(false)}
               className="mt-6 w-full px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded-lg hover:bg-gray-400"
@@ -373,7 +459,6 @@ export default function TeacherDashboard() {
             </button>
           </div>
 
-          {/* PROFILE SECTION MOVED UP */}
           <div
             className="profile-section"
             onClick={() => setShowProfileModal(true)}
@@ -398,58 +483,41 @@ export default function TeacherDashboard() {
           <nav className="firebase-nav">
             <div className="firebase-nav-group">
               <div className="firebase-nav-title">Teacher Menu</div>
-
-              {/* Map top tabs to sidebar items */}
-              <div
-                className={`firebase-nav-item ${
-                  activeTab === "Dashboard" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("Dashboard")}
-              >
-                <i className="bx bx-home"></i>
-                <span>Dashboard</span>
-              </div>
-
-              <div
-                className={`firebase-nav-item ${
-                  activeTab === "Announcement" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("Announcement")}
-              >
-                <i className="bx bx-bullhorn"></i>
-                <span>Announcements</span>
-              </div>
-
-              <div
-                className={`firebase-nav-item ${
-                  activeTab === "Student List" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("Student List")}
-              >
-                <i className="bx bx-user"></i>
-                <span>Students</span>
-              </div>
-
-              <div
-                className={`firebase-nav-item ${
-                  activeTab === "Upload Content" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("Upload Content")}
-              >
-                <i className="bx bx-cloud-upload"></i>
-                <span>Upload</span>
-              </div>
-
-              <div
-                className={`firebase-nav-item ${
-                  activeTab === "Message" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("Message")}
-              >
-                <i className="bx bx-message"></i>
-                <span>Messages</span>
-              </div>
-
+              {[
+                "Dashboard",
+                "Announcements",
+                "Students",
+                "Upload",
+                "Messages",
+              ].map((label, i) => {
+                const icons = [
+                  "bx-home",
+                  "bx-bullhorn",
+                  "bx-user",
+                  "bx-cloud-upload",
+                  "bx-message",
+                ];
+                const tabMap: { [key: string]: string } = {
+                  Dashboard: "Dashboard",
+                  Announcements: "Announcement",
+                  Students: "Student List",
+                  Upload: "Upload Content",
+                  Messages: "Message",
+                };
+                const tab = tabMap[label];
+                return (
+                  <div
+                    key={label}
+                    className={`firebase-nav-item ${
+                      activeTab === tab ? "active" : ""
+                    }`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    <i className={`bx ${icons[i]}`}></i>
+                    <span>{label}</span>
+                  </div>
+                );
+              })}
               <div className="firebase-nav-item" onClick={handleLogout}>
                 <i className="bx bx-log-out"></i>
                 <span>Logout</span>
@@ -467,14 +535,12 @@ export default function TeacherDashboard() {
             >
               <div className="firebase-logo">
                 <img src={logo} alt="MegaPend" />
-              </div>{" "}
+              </div>
             </button>
-
             <div className="firebase-title">
               MegaPend
               <small>Teachers Dashboard • {teacherName}</small>
             </div>
-
             <button className="gemini-btn" onClick={() => navigate("/chatbot")}>
               <i className="bx bxs-star"></i>
               Ask MegaBot for help
@@ -512,6 +578,7 @@ export default function TeacherDashboard() {
                 </button>
               </div>
 
+              {/* Student List */}
               {activeTab === "Student List" && (
                 <>
                   <div className="table-header">
@@ -555,7 +622,213 @@ export default function TeacherDashboard() {
                 </>
               )}
 
-              {activeTab !== "Student List" && (
+              {/* ANNOUNCEMENT TAB - FULLY FIXED & GORGEOUS */}
+              {activeTab === "Announcement" && (
+                <div className="max-w-5xl mx-auto py-8 px-4">
+                  {/* POST CREATOR */}
+                  <div className="bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-pink-600/20 backdrop-blur-xl border border-white/20 rounded-3xl p-8 mb-10 shadow-2xl transform hover:scale-[1.01] transition-all duration-300">
+                    <div className="flex gap-5">
+                      <div className="relative">
+                        <div className="absolute inset-0 rounded-full bg-blue-500 blur-xl opacity-60 animate-pulse"></div>
+                        <div className="relative w-16 h-16 rounded-full overflow-hidden ring-4 ring-blue-400 ring-offset-4 ring-offset-gray-900">
+                          {teacherPhotoURL ? (
+                            <img
+                              src={teacherPhotoURL}
+                              alt="You"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white">
+                              {getInitials(teacherName)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex-1">
+                        <textarea
+                          rows={4}
+                          value={newAnnouncement}
+                          onChange={(e) => setNewAnnouncement(e.target.value)}
+                          placeholder={`What's the latest update for your students, ${
+                            teacherName.split(" ")[0]
+                          }?`}
+                          className="w-full px-6 py-4 bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl resize-none focus:outline-none focus:ring-4 focus:ring-blue-400 focus:border-transparent placeholder-gray-300 text-white text-lg font-medium transition-all"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              postAnnouncement();
+                            }
+                          }}
+                        />
+
+                        <div className="flex justify-between items-center mt-5">
+                          <div className="flex gap-6">
+                            <button className="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 hover:bg-blue-500/30 backdrop-blur transition-all hover:scale-110">
+                              <i className="bx bxs-image-add text-2xl text-blue-400 group-hover:text-white"></i>
+                              <span className="text-gray-200 font-medium">
+                                Photo
+                              </span>
+                            </button>
+                            <button className="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 hover:bg-green-500/30 backdrop-blur transition-all hover:scale-110">
+                              <i className="bx bxs-video text-2xl text-green-400 group-hover:text-white"></i>
+                              <span className="text-gray-200 font-medium">
+                                Video
+                              </span>
+                            </button>
+                            <button className="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 hover:bg-purple-500/30 backdrop-blur transition-all hover:scale-110">
+                              <i className="bx bxs-file-pdf text-2xl text-purple-400 group-hover:text-white"></i>
+                              <span className="text-gray-200 font-medium">
+                                File
+                              </span>
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={postAnnouncement}
+                            disabled={posting || !newAnnouncement.trim()}
+                            className={`px-10 py-4 rounded-2xl font-bold text-lg tracking-wide transition-all transform hover:scale-105 active:scale-95 ${
+                              newAnnouncement.trim() && !posting
+                                ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-2xl shadow-blue-500/50"
+                                : "bg-gray-600/50 text-gray-400 cursor-not-allowed"
+                            }`}
+                          >
+                            {posting ? (
+                              <span className="flex items-center gap-3">
+                                <i className="bx bx-loader-alt animate-spin"></i>{" "}
+                                Posting...
+                              </span>
+                            ) : (
+                              "POST ANNOUNCEMENT"
+                            )}
+                          </button>
+                        </div>
+
+                        <div className="mt-4 flex items-center gap-2 text-sm">
+                          <i className="bx bxs-group text-blue-400"></i>
+                          <span className="text-gray-300">
+                            Broadcasting to:{" "}
+                            <strong className="text-blue-300">
+                              {teachingClasses.join(" • ")}
+                            </strong>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ANNOUNCEMENT FEED */}
+                  <div className="space-y-8">
+                    {announcements.length === 0 ? (
+                      <div className="text-center py-20">
+                        <div className="relative inline-block">
+                          <div className="absolute inset-0 rounded-full bg-blue-500 blur-3xl opacity-30 animate-ping"></div>
+                          <i className="bx bx-bullhorn text-9xl text-blue-500/30 relative"></i>
+                        </div>
+                        <h3 className="text-3xl font-bold text-gray-400 mt-8">
+                          No announcements yet
+                        </h3>
+                        <p className="text-gray-500 mt-3 text-lg">
+                          Be the first to inspire your students!
+                        </p>
+                      </div>
+                    ) : (
+                      announcements.map((ann, index) => (
+                        <div
+                          key={ann.id}
+                          className={`bg-gradient-to-br from-gray-800/90 via-blue-900/20 to-purple-900/20 backdrop-blur-xl border ${
+                            index === 0
+                              ? "border-blue-400/50 shadow-2xl shadow-blue-500/30"
+                              : "border-white/10"
+                          } rounded-3xl p-8 transform hover:scale-[1.02] transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20`}
+                        >
+                          <div className="flex gap-5">
+                            <div className="relative">
+                              <div className="w-14 h-14 rounded-full overflow-hidden ring-4 ring-blue-400/50 ring-offset-4 ring-offset-gray-900">
+                                {ann.teacherPhotoURL ? (
+                                  <img
+                                    src={ann.teacherPhotoURL}
+                                    alt={ann.teacherName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold text-white">
+                                    {getInitials(ann.teacherName)}
+                                  </div>
+                                )}
+                              </div>
+                              {index === 0 && (
+                                <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full animate-pulse">
+                                  LATEST
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className="text-2xl font-bold text-white">
+                                  {ann.teacherName}
+                                </h3>
+                                {ann.pinned && (
+                                  <i
+                                    className="bx bxs-pin text-yellow-400 text-xl"
+                                    title="Pinned"
+                                  ></i>
+                                )}
+                                <span className="text-blue-400 font-medium">
+                                  • Teacher
+                                </span>
+                              </div>
+
+                              <p className="text-sm text-cyan-300 mb-4 flex items-center gap-2">
+                                <i className="bx bx-time-five"></i>
+                                {ann.timestamp.toLocaleDateString("en-US", {
+                                  weekday: "long",
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}{" "}
+                                at{" "}
+                                {ann.timestamp.toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                                <span className="mx-2">•</span>
+                                <i className="bx bxs-group"></i>{" "}
+                                {ann.classLevels.join(" • ")}
+                              </p>
+
+                              <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 mb-6">
+                                <p className="text-gray-100 text-lg leading-relaxed whitespace-pre-wrap">
+                                  {ann.content}
+                                </p>
+                              </div>
+
+                              <div className="flex gap-8 text-gray-400">
+                                <button className="flex items-center gap-3 hover:text-blue-400 transition-all hover:scale-110">
+                                  <i className="bx bxs-like text-2xl"></i>
+                                  <span className="font-medium">Like</span>
+                                </button>
+                                <button className="flex items-center gap-3 hover:text-green-400 transition-all hover:scale-110">
+                                  <i className="bx bxs-comment text-2xl"></i>
+                                  <span className="font-medium">Comment</span>
+                                </button>
+                                <button className="flex items-center gap-3 hover:text-purple-400 transition-all hover:scale-110">
+                                  <i className="bx bxs-share text-2xl"></i>
+                                  <span className="font-medium">Share</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Other tabs placeholder */}
+              {activeTab !== "Student List" && activeTab !== "Announcement" && (
                 <div className="empty">
                   <i className="bx bx-construction text-6xl text-gray-400"></i>
                   <p>{activeTab} section coming soon!</p>
