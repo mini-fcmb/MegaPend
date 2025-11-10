@@ -6,7 +6,7 @@ import Login from "./pages/login";
 import Signup from "./pages/signup";
 import TeacherDashboard from "./pages/teacher";
 import StudentDashboard from "./pages/student";
-import ChatbotPage from "./pages/chatbot"; // Page wrapper for the chatbot
+import UploadExam from "./pages/upload";
 import ProtectedRoute from "./components/protectedroute";
 
 function App() {
@@ -22,13 +22,11 @@ function App() {
   return (
     <Routes>
       {/* Default route */}
-      <Route path="/" element={<Home theme={theme} setTheme={setTheme} />} />
+      {/*<Route path="/" element={<Home theme={theme} setTheme={setTheme} />} />
 
-      {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      {/* Protected routes */}
       <Route
         path="/teacher-dashboard"
         element={
@@ -48,17 +46,17 @@ function App() {
       />
 
       {/* Chatbot page route */}
-      <Route
-        path="/chatbot"
-        element={
-          <ProtectedRoute>
-            <ChatbotPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Catch-all */}
+      {/*<Route
+          path="/chatbot"
+          element={
+            <ProtectedRoute>
+              <ChatbotPage />
+            </ProtectedRoute>
+          }
+        />
       <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/upload" element={<UploadExam />} />*/}
+      <Route path="/" element={<UploadExam />} />
     </Routes>
   );
 }

@@ -1,4 +1,4 @@
-* {
+*{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -131,12 +131,12 @@ header {
 }
 
 
-/*.close-btn {
+.close-btn {
   font-size: 20px;
   background: none;
   border: none;
   cursor: pointer;
-}*/
+}
 
 .overlay {
   position: fixed;
@@ -150,13 +150,6 @@ header {
   display: block;
 }
 
-.hero-section {
-  text-align: center;
-  padding: 100px 50px;
-  margin-top: 18%;
-  scroll-margin-top: 100px;
-  
-}
 
 .hero-section h1 {
   font-size: 3rem;
@@ -225,7 +218,7 @@ header {
 }
 
 [data-theme="dark"] {
-  --bg-color: #0d1117;
+  --bg-color: #1f1f1f ;
   --text-color: #f8f8f8;
   --primary-color: #161b22;
   --secondary-color: #1e242c;
@@ -249,6 +242,7 @@ header {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
+  background-color: var(--bg-color);
 }
 
 .hero-section {
@@ -257,7 +251,10 @@ header {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 5rem 1.5rem;
+  padding: 100px 50px;
+  margin-top: 5%;
+  scroll-margin-top: 100px;
+
 }
 
 .hero-section h1 {
@@ -309,7 +306,7 @@ header {
 }
 
 .features-section {
-  background-color: #f9fafb;
+  background-color: #fafbfc;
   padding: 5rem 1.5rem;
   text-align: center;
   scroll-margin-top: 5px;
@@ -338,7 +335,7 @@ header {
 
 
 .feature-card {
-  background-color: white;
+  background-color: var(--bg-color);
   padding: 2rem;
   border-radius: 1rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
@@ -353,7 +350,7 @@ header {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #222;
+  color: var(--text-color);
 }
 
 .feature-card p {
@@ -417,13 +414,7 @@ header {
   color: #d1d5db;
 }
 
-.dark .features-section {
-  background-color: #1f2937;
-}
 
-.dark .feature-card {
-  background-color: #111827;
-}
 
 .dark .cta-section {
   background-color:rgb(126, 201, 13) ;

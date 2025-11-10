@@ -54,7 +54,7 @@ const MainContent: React.FC = () => {
   ];
 
   return (
-    <main className="main-container min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-500">
+    <main className="main-container min-h-screen transition-colors duration-500">
       <section
         id="hero"
         className="hero-section flex flex-col items-center justify-center text-center py-20 px-6 md:px-12"
@@ -99,10 +99,7 @@ const MainContent: React.FC = () => {
         </motion.div>
       </section>
 
-      <section
-        id="features"
-        className="features-section py-20 bg-gray-50 dark:bg-gray-800 text-center"
-      >
+      <section id="features" className="features-section ">
         <motion.h2
           variants={fadeIn("up", 0.2)}
           initial="hidden"
@@ -121,7 +118,7 @@ const MainContent: React.FC = () => {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true }}
-              className="feature-card p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-md hover:shadow-xl transition"
+              className="feature-card "
             >
               <div className="text-4xl mb-4">{feature.icon}</div>
               <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
@@ -169,7 +166,7 @@ const MainContent: React.FC = () => {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="bg-white text-blue-700 hover:bg-gray-200 px-8 py-3 rounded-2xl font-semibold transition"
+          className=".cta-section button"
         >
           <Link to="/signup"> Create Your Account Now 🚀</Link>
         </motion.button>
