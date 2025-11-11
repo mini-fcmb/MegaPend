@@ -1,5 +1,5 @@
-/*import React, { useEffect, useRef, useState } from "react";
-import {
+import React, { useEffect, useRef, useState } from "react";
+/*import {
   Zap,
   Search,
   MessageCircle,
@@ -12,7 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
-} from "lucide-react";
+} from "lucide-react";*/
 import "./chatbot.css";
 
 const SidebarItem: React.FC<{
@@ -65,8 +65,7 @@ export default function App(): JSX.Element {
         mobileOpen ? "mobile-open" : ""
       }`}
     >
-  
-     {/* <aside
+      <aside
         className={`sidebar ${collapsed ? "collapsed" : ""} ${
           mobileOpen ? "open" : ""
         }`}
@@ -127,7 +126,7 @@ export default function App(): JSX.Element {
           </div>
         </div>
 
-        {/*<button
+        <button
           className={`sidebar-toggle ${collapsed ? "t-collapsed" : ""}`}
           onClick={toggle}
           aria-expanded={!collapsed}
@@ -137,13 +136,13 @@ export default function App(): JSX.Element {
         </button>
       </aside>
 
-      {/*<div
+      <div
         className={`backdrop ${mobileOpen ? "visible" : ""}`}
         onClick={() => setMobileOpen(false)}
         aria-hidden={!mobileOpen}
       />
 
-      {/*<main className="main">
+      <main className="main">
         <div className="panel">
           <div className="private-badge">
             <Lock size={14} /> <span>Private</span>
@@ -190,4 +189,4 @@ export default function App(): JSX.Element {
       </main>
     </div>
   );
-}*/
+}
